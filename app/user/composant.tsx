@@ -5,7 +5,7 @@ import logo from "../../public/images/logo.webp"
 import Image from "next/image"
 import Cookie from "js-cookie";
 
-export default function Composant({data} : any) {
+export default function Composant({stations, users} : any) {
   return (
     <div>
       <div className={styles.header}>

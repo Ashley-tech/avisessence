@@ -1,3 +1,4 @@
+"use client"
 import Image from "next/image";
 import styles from "./app.module.css";
 import logo from "../public/images/logo.webp";
@@ -14,7 +15,7 @@ export default function Home() {
         <div className={styles.section}>
           <div className={styles.content}>
             <Image src={logo} width={300} height={300} alt="Logo" />
-            <button className={styles.bigbutton} id="candidatures-button">
+            <button className={styles.bigbutton} onClick={() => location.href = "/user"} id="candidatures-button">
               <span className={styles.buttonTitle}>Utilisateur</span>
               <span className={styles.buttonSubtitle}>(Consulter les avis, signaler un problème, etc.)</span>
             </button>

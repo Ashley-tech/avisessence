@@ -1,9 +1,25 @@
 import Composant from "./composant"
+import * as mongo from "@/lib/ts_mongdb_client_connect/mongo_client_connect"
 
-export default function Page() {
+export default async function Page({
+    params,
+    searchParams,
+  }: {
+    params: { slug: string };
+    searchParams?: { [key: string]: string | string[] | undefined };
+  }) {
+
+    async function getDatas(collection: string){
+        let d= await mongo.find("db_essence",collection,{});
+        return d
+    }
+
+    const datas = await getDatas("stations");
+    const users = await getDatas("users");
+
   return (
     <>
-      <Composant />
+      <Composant stations={datas} users={users} />
     </>
   );
 }

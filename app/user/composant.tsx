@@ -11,7 +11,9 @@ export default function Composant({stations, users} : any) {
     for (let i = 0; i < stations.length; i++) {
       let station = stations[i];
       s.push(
-        <div key={station._id} className={styles.stationCard}>
+        <div key={station._id} className={styles.stationCard} onClick={() => {
+          location.href = "/user/station/" + station._id;
+        }}>
           <h2>{station.name}</h2>
           <p>{station.localisation.city}</p>
         </div>

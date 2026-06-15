@@ -6,6 +6,19 @@ import Image from "next/image"
 import Cookie from "js-cookie";
 
 export default function Composant({stations, users} : any) {
+  function allStations() {
+    let s = [];
+    for (let i = 0; i < stations.length; i++) {
+      let station = stations[i];
+      s.push(
+        <div key={station._id} className={styles.stationCard}>
+          <h2>{station.name}</h2>
+          <p>{station.localisation.city}</p>
+        </div>
+      );
+    }
+    return s;
+  }
   return (
     <div>
       <div className={styles.header}>
@@ -16,7 +29,13 @@ export default function Composant({stations, users} : any) {
         </div>
         <div className={styles.section}>
           <div className={styles.content}>
-            <Image src={logo} width={300} height={300} alt="Logo" />
+            <Image src={logo} className="cursor-pointer" width={300} height={300} alt="Logo" onClick={() => location.href = "/"}/>
+            <div className={styles.stationsContainer}>
+              {allStations()}
+            </div>
+            <button className={styles.bigbutton} onClick={() => location.href = "/"} id="candidatures-button">
+              <span className={styles.buttonTitle}>Retour</span>
+            </button>
           </div>
         </div>
         <div className={styles.footer}>

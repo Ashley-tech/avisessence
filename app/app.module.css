@@ -3,12 +3,15 @@
 	display: flex;
 	width: 100%;
 	align-items: center;
-	justify-content: space-between;
+    justify-content: flex-end;
 	margin: 0;
 	padding: 0;
 }
 
 .nav_links li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 	padding: 0;
 	color: white;
 }
@@ -38,6 +41,10 @@
     height: 80px;
     color: #0F172A;
 }
+
+/*.header nav {
+	width: 100%;
+}*/
 
 .footer{
     display: flex;
@@ -124,3 +131,67 @@
     font-size: 14px;
     font-weight: normal;
 }
+
+.float_connection {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.65);
+    padding: 24px;
+}
+
+.float_connection_visible {
+    display: flex;
+}
+
+.popupBox {
+    width: min(400px, 100%);
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+    padding: 24px;
+    position: relative;
+    text-align: center;
+}
+
+.popupClose {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    border: none;
+    background: transparent;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.popupAction {
+    margin-top: 22px;
+    width: 100%;
+    padding: 14px 16px;
+    background: #F59E0B;
+    color: #0F172A;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.float_signup {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.65);
+    padding: 24px;
+}
+
+.float_signup_visible {
+    display: flex;
+}
+

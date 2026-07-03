@@ -147,7 +147,7 @@ export async function POST(request: NextRequest, { params }: { params: { collect
   )
 }
 
-export async function PUT(request: NextRequest): Promise<NextResponse> {
+export async function PATCH(request: NextRequest, { params }: { params: { collection: string } }): Promise<NextResponse> {
   const method = await request.method
   return NextResponse.json(
     {
@@ -160,7 +160,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
   )
 }
 
-export async function PATCH(request: NextRequest): Promise<NextResponse> {
+export async function PUT(request: NextRequest): Promise<NextResponse> {
   const method = await request.method
   return NextResponse.json(
     {

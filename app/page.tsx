@@ -2,8 +2,10 @@
 import Image from "next/image";
 import styles from "./app.module.css";
 import logo from "../public/images/logo.webp";
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
+  const router = useRouter();
   return (
     <div>
       <div className={styles.header}>

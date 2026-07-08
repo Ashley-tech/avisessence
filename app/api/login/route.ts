@@ -7,7 +7,7 @@ export async function POST(request: NextRequest, { params }: { params: { collect
   const method = request.method
   const { login, password } = await request.json()
 
-  const user = await mongo.find("db_essence","users", {login: login, password: password})
+  const user = await mongo.find("db_essence","users", {login: login, password: password/*, type: "Local"*/})
   if (!user || (Array.isArray(user) && user.length == 0)) {
     return NextResponse.json(
       {

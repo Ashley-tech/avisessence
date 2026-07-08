@@ -137,7 +137,11 @@ export default function Composant({stations, users} : any) {
   }
 
   function connectedBool() {
-    return userName ?? "Se connecter";
+    if (userName) {
+      let index = users.findIndex((user: any) => user.login === userName && user.type === "Local");
+      return users[index]?.login ?? "Se connecter";
+    }
+    return "Se connecter";
   }
 
   return (

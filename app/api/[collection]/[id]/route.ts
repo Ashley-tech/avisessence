@@ -41,14 +41,62 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ collection: string; id: string }> }
 ): Promise<NextResponse> {
-  const { collection, id } = await params
-  return NextResponse.json(
-    {
-      success: false,
-      raison: 'Method POST not allowed'
-    },
-    { status: HttpStatusCode.METHOD_NOT_ALLOWED }
-  )
+  try {
+    const { collection, id } = await params
+    if (!collection || !id) {
+      return NextResponse.json(
+        {
+          success: false,
+          raison: 'Collection and ID are required'
+        },
+        { status: HttpStatusCode.BAD_REQUEST }
+      )
+    }
+
+    if (collection === 'stations') {
+      const { name, price } = await request.json()
+      if (!name || !price) {
+        return NextResponse.json(
+          {
+            success: false,
+            raison: 'Missing required fields: name and price are required'
+          },
+          { status: HttpStatusCode.BAD_REQUEST }
+        )
+      } 
+      const carburant = {
+        name: name,
+        price: price,
+        avis: []
+      }
+
+      await mongo.updateOne("db_essence", collection, { _id: id.toString }, { $set: { carburants: [carburant ] } })
+    } else {
+      return NextResponse.json(
+        {
+          success: false,
+          raison: `Collection ${collection} is not found or not allowed for update`
+        },
+        { status: HttpStatusCode.BAD_REQUEST }
+      )
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        raison: 'Resource updated successfully'
+      },
+      { status: HttpStatusCode.OK }
+    )
+  } catch (error) {
+    return NextResponse.json(
+      {
+        success: false,
+        raison: 'Error updating resource'
+      },
+      { status: HttpStatusCode.INTERNAL_SERVER_ERROR }
+    )
+  }
 }
 
 export async function PATCH(

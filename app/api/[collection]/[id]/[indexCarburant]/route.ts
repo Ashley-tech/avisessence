@@ -218,16 +218,6 @@ export async function DELETE(
     }
 
     if (collection === 'stations') {
-      const { name } = await request.json()
-      if (!name) {
-        return NextResponse.json(
-          {
-            success: false,
-            raison: 'Missing required field: name is required'
-          },
-          { status: HttpStatusCode.BAD_REQUEST }
-        )
-      }
       const data = await mongo.find("db_essence", collection, { _id: id.toString })
       if (!data || (Array.isArray(data) && data.length == 0)) {
         return NextResponse.json(
@@ -244,7 +234,7 @@ export async function DELETE(
             return NextResponse.json(
                 {
                     success: true,
-                    raison: 'Carburant updated successfully'
+                    raison: 'Carburant deleted successfully'
                 },
                 { status: HttpStatusCode.OK }
             )
@@ -261,29 +251,20 @@ export async function DELETE(
       return NextResponse.json(
         {
           success: false,
-          raison: `Collection ${collection} is not found or not allowed for update`
+          raison: `Collection ${collection} is not found or not allowed for delete`
         },
         { status: HttpStatusCode.BAD_REQUEST }
       )
     }
-
-    return NextResponse.json(
-      {
-        success: true,
-        raison: 'Resource updated successfully'
-      },
-      { status: HttpStatusCode.OK }
-    )
   } catch (error) {
     return NextResponse.json(
       {
         success: false,
-        raison: 'Error updating resource'
+        raison: 'Error deleting resource'
       },
       { status: HttpStatusCode.INTERNAL_SERVER_ERROR }
     )
   }
-}
 }
 
 export async function HEAD(

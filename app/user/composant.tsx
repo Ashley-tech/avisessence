@@ -10,7 +10,9 @@ import connect from "../../public/images/connection.webp"
 export default function Composant({stations, users} : any) {
   const [showConnection, setShowConnection] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
+  const [showModificationInfos, setShowModificationInfos] = useState(false);
   const userName = Cookie.get("user_name");
+  const index = users.findIndex((user: any) => user.login === userName);
 
   function allStations() {
     let s = [];
@@ -179,6 +181,92 @@ export default function Composant({stations, users} : any) {
     }
   }
 
+  function fenetreModificationInfos() {
+    return (
+      <div id="float_modification_infos" className={`${styles.float_modification_infos} ${showModificationInfos ? styles.float_modification_infos_visible : ""}`}>
+        <div className={styles.popupBox}>
+          <button type="button" className={styles.popupClose} onClick={() => setShowModificationInfos(false)}>
+            ×
+          </button>
+          <h3>Modifier vos informations</h3>
+          <table>
+            <tbody>
+              <tr>
+                <td>Identifiant* :</td>
+                <td><input type="text" placeholder="Identifiant" id="iden_modif" /></td>
+              </tr>
+              <tr>
+                <td>Adresse e-mail* :</td>
+                <td><input type="email" placeholder="Adresse e-mail" id="email_modif" /></td>
+              </tr>
+              <tr>
+                <td>Nouveau mot de passe* :</td>
+                <td><input type="password" placeholder="Mot de passe" id="mdpi_modif" /></td>
+              </tr>
+              <tr>
+                <td>Nouveau mot de passe (à reconfirmer)* :</td>
+                <td><input type="password" placeholder="Mot de passe" id="mdpir_modif" /></td>  
+              </tr>
+            </tbody>
+          </table>
+          <button className={styles.popupAction} onClick={modifierInfos}>
+            Enregistrer les modifications
+          </button>
+          <button className={styles.popupAction} onClick={() => {
+            setShowModificationInfos(false);
+            setShowConnection(true);
+          }}>Annuler les modifications</button>
+        </div>
+      </div>
+    );
+  }
+
+  async function modifierInfos() {
+    const iden_modif = (document.getElementById("iden_modif") as HTMLInputElement).value;
+    const email_modif = (document.getElementById("email_modif") as HTMLInputElement).value;
+    const mdpi_modif = (document.getElementById("mdpi_modif") as HTMLInputElement).value;
+    const mdpir_modif = (document.getElementById("mdpir_modif") as HTMLInputElement).value;
+    const oldPwd = users[index]?.password;
+    if (iden_modif === "" || email_modif === "") {
+      alert("L'identifiant et l'adresse e-mail sont obligatoires.");
+      return;
+    }
+    if (mdpi_modif !== "" || mdpir_modif !== "") {
+      if (mdpir_modif !== mdpi_modif) {
+        alert("Les mots de passe ne correspondent pas.");
+        return;
+      }
+      if (!regex(mdpi_modif, /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d-]{8,}$/)) {
+        alert("Le mot de passe doit contenir au moins 8 caractères, dont au moins une lettre et un chiffre.");
+        return;
+      }
+    }
+    const response = await fetch(`/api/users/${users[index]?._id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        login: iden_modif,
+        mail: email_modif,
+        password: mdpi_modif || oldPwd
+      })
+    });
+    const result = await response.json();
+    if (result.success) {
+      alert("Informations mises à jour avec succès.");
+      if (userName !== iden_modif) {
+        Cookie.set("user_name", iden_modif);
+      }
+      document.getElementById('userLi')!.textContent = iden_modif;
+      document.getElementById('emailLi')!.textContent = email_modif;
+      document.getElementById('password-length')!.textContent = (mdpi_modif || oldPwd).length.toString();
+      setShowModificationInfos(false);
+    } else {
+      alert("Erreur lors de la mise à jour des informations.");
+    }
+  }
+
   function fenetreConnection() {
     return (
       <div id="float_connection" className={`${styles.float_connection} ${showConnection ? styles.float_connection_visible : ""}`}>
@@ -188,11 +276,27 @@ export default function Composant({stations, users} : any) {
           </button>
           {userName ? (
             <>
-              <h3>Êtes-vous sûr de vouloir vous déconnecter ?</h3>
+              <h3>Vos informations</h3>
+              <p>Vous êtes connecté en tant que : <strong id="userLi">{userName}</strong></p>
+              <p>Votre adresse e-mail est : <strong id='emailLi'>{users[index]?.mail}</strong></p>
+              <p>Votre mot de passe contient <strong id="password-length">{users[index]?.password.length}</strong> caractère(s)</p>
               <button className={styles.popupAction} onClick={() => {
-                Cookie.remove("user_name");
                 setShowConnection(false);
-                location.reload();
+                setShowModificationInfos(true);
+                (document.getElementById("mdpi_modif") as HTMLInputElement).value = "";
+                (document.getElementById("mdpir_modif") as HTMLInputElement).value = "";
+                (document.getElementById("iden_modif") as HTMLInputElement).value = users[index]?.login;
+                (document.getElementById("email_modif") as HTMLInputElement).value = users[index]?.mail;
+              }}>
+                Modifier vos informations
+              </button>
+              <button className={styles.popupAction} onClick={() => {
+                var confD = confirm("Êtes-vous sûr de vouloir vous déconnecter ?");
+                if (confD) {
+                  Cookie.remove("user_name");
+                  setShowConnection(false);
+                  location.reload();
+                }
               }}>
                 Déconnexion
               </button>
@@ -270,6 +374,7 @@ export default function Composant({stations, users} : any) {
         </div>
         {fenetreConnection()}
         {fenetreSignup()}
+        {fenetreModificationInfos()}
     </div>
   );
 }

@@ -73,7 +73,7 @@ export default function Composant({stations, users} : any) {
               </tr>
             </tbody>
           </table>
-          <button className={styles.popupAction}>
+          <button className={styles.popupAction} onClick={inscrire}>
             S'inscrire
           </button>
           <button className={styles.popupAction} onClick={() => {
@@ -85,6 +85,98 @@ export default function Composant({stations, users} : any) {
         </div>
       </div>
     );
+  }
+
+  function regex(str: string, pattern: RegExp): boolean {
+    return pattern.test(str);
+  }
+
+  async function connecter() {
+    if (document.getElementById("mdpc") && document.getElementById("idenl")) {
+      const mdpc = (document.getElementById("mdpc") as HTMLInputElement).value;
+      const iden = (document.getElementById("idenl") as HTMLInputElement).value;
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          login: iden,
+          password: mdpc
+        })
+      });
+      const result = await response.json();
+      if (result.success) {
+        Cookie.set("user_name", iden);
+        setShowConnection(false);
+        location.reload();
+      } else {
+        alert("Erreur lors de la connexion. Les identifiants sont incorrects.");
+      }
+    }
+  }
+
+  async function inscrire() {
+    if (document.getElementById("iden") && document.getElementById("iden_confirm") && document.getElementById("email") && document.getElementById("email_confirm") && document.getElementById("mdpi") && document.getElementById("mdpir")) {
+      const iden = (document.getElementById("iden") as HTMLInputElement).value;
+      const iden_confirm = (document.getElementById("iden_confirm") as HTMLInputElement).value;
+      const email = (document.getElementById("email") as HTMLInputElement).value;
+      const email_confirm = (document.getElementById("email_confirm") as HTMLInputElement).value;
+      const mdpi = (document.getElementById("mdpi") as HTMLInputElement).value;
+      const mdpir = (document.getElementById("mdpir") as HTMLInputElement).value;
+      if (iden != iden_confirm) {
+        alert("Les identifiants ne correspondent pas.");
+        return;
+      }
+      if (email != email_confirm) {
+        alert("Les adresses e-mail ne correspondent pas.");
+        return;
+      }
+      if (mdpi != mdpir) {
+        alert("Les mots de passe ne correspondent pas.");
+        return;
+      }
+      if (!regex(email, /^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+        alert("L'adresse e-mail n'est pas valide.");
+        return;
+      }
+      if (!regex(mdpi, /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d-]{8,}$/)) {
+        alert("Le mot de passe doit contenir au moins 8 caractères, dont au moins une lettre et un chiffre.");
+        return;
+      }
+      const index = users.findIndex((user: any) => user.login === iden);
+      if (index !== -1) {
+        alert("Cet identifiant est déjà utilisé.");
+        return;
+      }
+      const response = await fetch("/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          login: iden,
+          mail: email,
+          password: mdpi
+        })
+      });
+      const result = await response.json();
+      if (result.success) {
+        alert("Inscription réussie.");
+        (document.getElementById("mdpir") as HTMLInputElement).value = "";
+        (document.getElementById("mdpi") as HTMLInputElement).value = "";
+        (document.getElementById("email_confirm") as HTMLInputElement).value = "";
+        (document.getElementById("email") as HTMLInputElement).value = "";
+        (document.getElementById("iden_confirm") as HTMLInputElement).value = "";
+        (document.getElementById("iden") as HTMLInputElement).value = "";
+        setShowSignup(false);
+        setShowConnection(true);
+      } else {
+        alert("Erreur lors de l'inscription.");
+      }
+    } else {
+      alert("Veuillez remplir tous les champs.");
+    }
   }
 
   function fenetreConnection() {
@@ -112,7 +204,7 @@ export default function Composant({stations, users} : any) {
                 <tbody>
                   <tr>
                     <td>Identifiant :</td>
-                    <td><input type="text" placeholder="Identifiant" /></td>
+                    <td><input type="text" placeholder="Identifiant" id="idenl" /></td>
                   </tr>
                   <tr>
                     <td>Mot de passe :</td>
@@ -120,12 +212,18 @@ export default function Composant({stations, users} : any) {
                   </tr>
                 </tbody>
               </table>
-              <button className={styles.popupAction}>
+              <button className={styles.popupAction} onClick={connecter}>
               Se connecter
             </button>
             <button className={styles.popupAction} onClick={() => {
               setShowConnection(false);
               setShowSignup(true);
+              (document.getElementById("mdpir") as HTMLInputElement).value = "";
+              (document.getElementById("mdpi") as HTMLInputElement).value = "";
+              (document.getElementById("email_confirm") as HTMLInputElement).value = "";
+              (document.getElementById("email") as HTMLInputElement).value = "";
+              (document.getElementById("iden_confirm") as HTMLInputElement).value = "";
+              (document.getElementById("iden") as HTMLInputElement).value = "";
             }}>
               Inscription
             </button>

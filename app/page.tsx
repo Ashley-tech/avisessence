@@ -21,7 +21,7 @@ export default function Home() {
               <span className={styles.buttonTitle}>Utilisateur</span>
               <span className={styles.buttonSubtitle}>(Consulter les avis, signaler un problème, etc.)</span>
             </button>
-            <button className={styles.bigbutton} id="profile-button">
+            <button className={styles.bigbutton} id="profile-button" onClick={() => location.href = "/admin"}>
               <span className={styles.buttonTitle}>Administrateur</span>
               <span className={styles.buttonSubtitle}>(Gérer les stations, ajouter carburants, etc.)</span>
             </button>

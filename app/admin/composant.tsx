@@ -1,0 +1,67 @@
+"use client"
+import Image from "next/image";
+import styles from "../app.module.css";
+import logo from "../../public/images/logo.webp";
+import { useRouter } from 'next/navigation';
+
+export default function Home({stations, users} : any) {
+  const router = useRouter();
+
+  async function connecter() {
+    const usernameInput = document.getElementById("username") as HTMLInputElement;
+    const passwordInput = document.getElementById("password") as HTMLInputElement;
+    const errorMessage = document.getElementById("error-message") as HTMLParagraphElement;
+  }
+
+  return (
+    <div>
+      <div className={styles.header}>
+            <nav>
+                <ul className={styles.nav_links}>
+                </ul>
+            </nav>
+        </div>
+        <div className={styles.section}>
+          <div className={styles.content}>
+            <Image src={logo} width={300} height={300} alt="Logo" />
+            <h1 className={styles.title}>Connexion en tant qu'administrateur</h1>
+            <table className={styles.table}>
+              <tbody>
+                <tr>
+                    <th>Identifiant* :</th>
+                    <td><input type="text" id="username" name="username" className={styles.input} /></td>
+                </tr>
+                <tr>
+                    <th>Mot de passe* :</th>
+                    <td><input type="password" id="password" name="password" className={styles.input} /></td>
+                </tr>
+                <tr>
+                    <th></th>
+                    <td><p className={styles.smallbutton} onClick={() => {
+                        const passwordInput = document.getElementById("password") as HTMLInputElement;
+                        if (passwordInput) {
+                            passwordInput.type = passwordInput.type === "password" ? "text" : "password";
+                        }
+                    }}>Afficher le mot de passe</p></td>
+                </tr>
+                <tr>
+                    <td colSpan={2}><p className={styles.errorMessage} id="error-message"></p></td>
+                </tr>
+                <tr>
+                    <th colSpan={2}><button className={styles.bigbutton} id="login-button" onClick={() => 
+                        connecter()
+                    }>Se connecter</button></th>
+                </tr>
+              </tbody>
+            </table>
+            <button className={styles.bigbutton} id="profile-button" onClick={() => location.href = "/"}>
+              <span className={styles.buttonTitle}>Retour</span>
+            </button>
+          </div>
+        </div>
+        <div className={styles.footer}>
+            <p>© 2026 AvisEssence. Tous droits réservés.</p>
+        </div>
+    </div>
+  );
+}

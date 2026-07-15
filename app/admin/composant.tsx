@@ -11,6 +11,33 @@ export default function Home({stations, users} : any) {
     const usernameInput = document.getElementById("username") as HTMLInputElement;
     const passwordInput = document.getElementById("password") as HTMLInputElement;
     const errorMessage = document.getElementById("error-message") as HTMLParagraphElement;
+    try {
+      const response = await fetch('/api/login/admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          username: usernameInput.value,
+          password: passwordInput.value
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        // Connexion réussie, rediriger vers la page d'accueil
+        router.push('/admin/menu');
+      } else {
+        // Afficher le message d'erreur
+        if (errorMessage) {
+          errorMessage.textContent = data.raison || 'Erreur lors de la connexion. Veuillez réessayer.';
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors de la connexion :', error);
+      if (errorMessage) {
+        errorMessage.textContent = 'Erreur lors de la connexion. Veuillez réessayer.';
+      }
+    }
   }
 
   return (

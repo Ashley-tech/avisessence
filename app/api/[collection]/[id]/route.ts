@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server'
 import HttpStatusCode from '../../../../lib/ts_HTTP/HttpStatusCode'
 import * as mongo from '../../../../lib/ts_mongdb_client_connect/mongo_client_connect'
-import { MongoError } from 'mongodb'
+import { MongoError, ObjectId } from 'mongodb'
 
 export async function GET(
   request: NextRequest,
@@ -18,7 +18,8 @@ export async function GET(
         { status: HttpStatusCode.BAD_REQUEST }
       )
     }
-    const data = await mongo.find("db_essence", collection, { _id: id.toString })
+    let objectId = new ObjectId(id)
+    const data = await mongo.find("db_essence", collection, { _id: objectId })
     return NextResponse.json(
       {
         success: true,
@@ -52,6 +53,7 @@ export async function POST(
         { status: HttpStatusCode.BAD_REQUEST }
       )
     }
+    let objectId = new ObjectId(id)
 
     if (collection === 'stations') {
       const { name, price } = await request.json()
@@ -70,7 +72,7 @@ export async function POST(
         avis: []
       }
 
-      await mongo.updateOne("db_essence", collection, { _id: id.toString }, { $set: { carburants: [carburant ] } })
+      await mongo.updateOne("db_essence", collection, { _id: objectId }, { $set: { carburants: [carburant ] } })
     } else {
       return NextResponse.json(
         {
@@ -114,6 +116,7 @@ export async function PATCH(
         { status: HttpStatusCode.BAD_REQUEST }
       )
     }
+    let objectId = new ObjectId(id)
 
     if (collection === 'users') {
       const { login, mail, password } = await request.json()
@@ -123,7 +126,7 @@ export async function PATCH(
       if (password) updateData.password = password
 
       if (Object.keys(updateData).length > 0) {
-        await mongo.updateOne("db_essence", collection, { _id: id.toString }, { $set: updateData })
+        await mongo.updateOne("db_essence", collection, { _id: objectId }, { $set: updateData })
       }
     } else if (collection === 'stations') {
       const { name, mark, adress, postalCode, city, department, region } = await request.json()
@@ -134,7 +137,7 @@ export async function PATCH(
         department: department,
         region: region
       }
-      await mongo.updateOne("db_essence", collection, { _id: id.toString }, { $set: { mark: mark, name: name, localisation: newlocalization } })
+      await mongo.updateOne("db_essence", collection, { _id: objectId }, { $set: { mark: mark, name: name, localisation: newlocalization } })
     } else {
       return NextResponse.json(
         {
@@ -168,6 +171,7 @@ export async function PUT(
   { params }: { params: Promise<{ collection: string; id: string }> }
 ): Promise<NextResponse> {
   const { collection, id } = await params
+  let objectId = new ObjectId(id)
   return NextResponse.json(
     {
       success: false,
@@ -192,7 +196,7 @@ export async function DELETE(
         { status: HttpStatusCode.BAD_REQUEST }
       )
     }
-    await mongo.findOneAndDelete("db_essence", collection, { _id: id.toString })
+    await mongo.findOneAndDelete("db_essence", collection, { _id: id })
     return NextResponse.json(
       {
         success: true,

@@ -105,7 +105,7 @@
     flex-direction: column;
     gap: 20px;
     width: 100%;
-    max-width: 600px;
+    max-width: 1000px;
     margin-top: 40px;
 }
 
@@ -127,6 +127,10 @@
     font-weight: bold;
 }
 
+.smallbutton .buttonTitle {
+    font-size: 18px;
+}
+
 .buttonSubtitle {
     font-size: 14px;
     font-weight: normal;
@@ -135,7 +139,7 @@
 .smallbutton {
     background-color: #F59E0B;
     color: #0F172A;
-    font-size: 24px;
+    font-size: 17px;
     cursor: pointer;
     display: flex;
     flex-direction: column;
@@ -143,6 +147,17 @@
     gap: 8px;
 
     width: 100%;
+}
+
+.stationsContainer table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.stationsContainer th,
+.stationsContainer td {
+    padding: 12px 16px; /* plus de marge à gauche/droite */
+    text-align: left;
 }
 
 .addAvisContainer {

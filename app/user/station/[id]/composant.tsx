@@ -9,13 +9,23 @@ import { useState } from "react";
 export default function Composant({station, users} : any) {
   const [showAddAvis, setShowAddAvis] = useState(false);
   const userName = Cookie.get("user_name");
-  function buttonAddAvis() {
+  var indexCarburant = 0;
+  function buttonAddAvis(index: number) {
     if (userName) {
-      return <button className={styles.bigbutton} onClick={() => setShowAddAvis(true)} id="candidatures-button">
+      return <button className={styles.smallbutton} onClick={() => ouvrirFenetreAddAvis(index)} id={"candidatures-button-"+index}>
         <span className={styles.buttonTitle}>Ajouter un avis</span>
       </button>
     }
     return null;
+  }
+
+  function ouvrirFenetreAddAvis(index: number) {
+    document.getElementById("message-error")!.textContent = "";
+    document.getElementById("note")!.value = "";
+    document.getElementById("commentary")!.value = "";
+    indexCarburant = index;
+    console.log("Index carburant sélectionné :", indexCarburant);
+    setShowAddAvis(true);
   }
 
   function fenetreAddAvis() {
@@ -31,7 +41,7 @@ export default function Composant({station, users} : any) {
           <table className={styles.table}>
             <tbody>
               <tr>
-                <th className="text-left">Note :</th>
+                <th className="text-left">Note* :</th>
                 <td className="text-left"><input type="number" id="note" name="note" min={0} max={5} className={styles.input} /></td>
               </tr>
               <tr>
@@ -40,12 +50,41 @@ export default function Composant({station, users} : any) {
               </tr>
             </tbody>
           </table>
-          <button className={styles.bigbutton} onClick={() => location.href = `/user/station/${station._id}/addAvis`} id="candidatures-button">
+          <button className={styles.bigbutton} onClick={() => {
+            const note = parseFloat((document.getElementById("note") as HTMLInputElement).value);
+            const commentary = (document.getElementById("commentary") as HTMLTextAreaElement).value;
+            addAvis(indexCarburant, note, commentary);
+          }} id="candidatures-button">
             <span className={styles.buttonTitle}>Ajouter</span>
           </button>
+          <p id="message-error" className={styles.errorMessage}></p>
         </div>
       </div>
     );
+  }
+
+  async function addAvis(indexCarburant: number, note: number, commentary: string) {
+    if (Number.isNaN(note) || note < 0 || note > 5) {
+      document.getElementById("message-error")!.textContent = "La note doit être renseignée et doit être comprise entre 0 et 5.";
+      return;
+    }
+    const response = await fetch(`/api/stations/${station._id}/${indexCarburant}`, {
+      method:"POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        note: note,
+        commentary: commentary
+      })
+    });
+    const result = await response.json();
+    if (!result.success) {
+      document.getElementById("message-error")!.textContent = result.raison || "Erreur lors de l'ajout de l'avis.";
+      return;
+    }
+
+    window.location.reload();
   }
 
 
@@ -77,6 +116,12 @@ export default function Composant({station, users} : any) {
                   <tr>
                     <th className="text-left">Code postal :</th>
                     <td className="text-left">{station.localisation.postalCode}</td>
+                    <th className="text-left">Département :</th>
+                    <td className="text-left">{station.localisation.department}</td>
+                  </tr>
+                  <tr>
+                    <th className="text-left">Région :</th>
+                    <td className="text-left">{station.localisation.region}</td>
                     <td colSpan={2}></td>
                   </tr>
                 </tbody>
@@ -87,21 +132,29 @@ export default function Composant({station, users} : any) {
                   <tr>
                     <th>Nom</th>
                     <th>Prix</th>
-                    <th>Derniers avis</th>
+                    <th colSpan={2}>Derniers avis</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {station.carburants.map((carburant: any, index: number) => (
-                    <tr key={index}>
-                      <td>{carburant.name}</td>
-                      <td>{carburant.price.toFixed(2)} €</td>
-                      <td>{carburant.avis[carburant.avis.length - 1].commentary} ({carburant.avis[carburant.avis.length - 1].note}/5)</td>
-                    </tr>
-                  ))}
+                  {station.carburants.map((carburant: any, index: number) => {
+                    const lastAvis = carburant.avis?.length ? carburant.avis[carburant.avis.length - 1] : null;
+
+                    return (
+                      <tr key={index}>
+                        <td>{carburant.name}</td>
+                        <td>{carburant.price != 0 ? carburant.price.toFixed(2) + "€/litre" : "RUPTURE"}</td>
+                        <td>
+                          {lastAvis
+                            ? `${lastAvis.commentary} (${lastAvis.noteSur5}/5)`
+                            : "Aucun avis disponible"}
+                        </td>
+                        <td>{buttonAddAvis(index)}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
-            {buttonAddAvis()}
             {fenetreAddAvis()}
             <button className={styles.bigbutton} onClick={() => location.href = "/user"} id="candidatures-button">
               <span className={styles.buttonTitle}>Retour</span>

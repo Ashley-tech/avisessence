@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server'
 import HttpStatusCode from '../../../lib/ts_HTTP/HttpStatusCode'
 import * as mongo from '../../../lib/ts_mongdb_client_connect/mongo_client_connect'
-import { MongoError } from 'mongodb'
+import { MongoError, ObjectId } from 'mongodb'
 
 export async function GET(request: NextRequest, { params }: { params: { collection: string } }): Promise<NextResponse> {
   const method = request.method

@@ -3,9 +3,11 @@ import Image from "next/image";
 import styles from "../app.module.css";
 import logo from "../../public/images/logo.webp";
 import { useRouter } from 'next/navigation';
+import Cookie from "js-cookie";
 
 export default function Home({stations, users} : any) {
   const router = useRouter();
+  const userName = Cookie.get("user_name");
 
   async function connecter() {
     const usernameInput = document.getElementById("username") as HTMLInputElement;
@@ -18,12 +20,13 @@ export default function Home({stations, users} : any) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          username: usernameInput.value,
+          login: usernameInput.value,
           password: passwordInput.value
         })
       });
       const data = await response.json();
       if (data.success) {
+        Cookie.set("user_name", usernameInput.value);
         // Connexion réussie, rediriger vers la page d'accueil
         router.push('/admin/menu');
       } else {

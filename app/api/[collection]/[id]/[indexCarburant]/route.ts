@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server'
 import HttpStatusCode from '../../../../../lib/ts_HTTP/HttpStatusCode'
 import * as mongo from '../../../../../lib/ts_mongdb_client_connect/mongo_client_connect'
-import { MongoError } from 'mongodb'
+import { MongoError, ObjectId } from 'mongodb'
 
 export async function GET(
   request: NextRequest,
@@ -33,9 +33,22 @@ export async function POST(
       )
     }
 
+    if (!ObjectId.isValid(id)) {
+      return NextResponse.json(
+        {
+          success: false,
+          raison: 'Invalid station ID format'
+        },
+        { status: HttpStatusCode.BAD_REQUEST }
+      )
+    }
+
+    const objectId = new ObjectId(id)
+
     if (collection === 'stations') {
       const { note, commentary } = await request.json()
-      if (!note) {
+      console.log(note)
+      if (note === undefined || note === null || typeof note !== 'number') {
         return NextResponse.json(
           {
             success: false,
@@ -44,7 +57,7 @@ export async function POST(
           { status: HttpStatusCode.BAD_REQUEST }
         )
       }
-      const data = await mongo.find("db_essence", collection, { _id: id.toString })
+      const data = await mongo.find("db_essence", collection, { _id: objectId })
       if (!data || (Array.isArray(data) && data.length == 0)) {
         return NextResponse.json(
           {
@@ -55,21 +68,24 @@ export async function POST(
         )
       }
         if (data[0].carburants && Array.isArray(data[0].carburants) && data[0].carburants.length > indexCarburant && indexCarburant >= 0) {
-            const now = new Date()
+            
+      
+      const now = new Date()
             const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
             const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`
 
             data[0].carburants[indexCarburant].avis.push({
-                "note": note,
+                "noteSur5": note,
                 "commentary": commentary,
                 "date": date,
                 "time": time
             })
-            await mongo.findOneAndReplace("db_essence", collection, { _id: id.toString }, {$set: {carburants: data[0].carburants}})
+            console.log(data[0].carburants)
+            await mongo.updateOne("db_essence", collection, { _id: objectId }, {$set: {carburants: data[0].carburants}})
             return NextResponse.json(
                 {
                     success: true,
-                    raison: 'Carburant updated successfully'
+                    raison: 'Carburant notice added successfully'
                 },
                 { status: HttpStatusCode.OK }
             )
@@ -126,6 +142,8 @@ export async function PATCH(
       )
     }
 
+    const objectId = new ObjectId(id)
+
     if (collection === 'stations') {
       const { name, price } = await request.json()
       if (!name || !price) {
@@ -137,7 +155,7 @@ export async function PATCH(
           { status: HttpStatusCode.BAD_REQUEST }
         )
       }
-      const data = await mongo.find("db_essence", collection, { _id: id.toString })
+      const data = await mongo.find("db_essence", collection, { _id: objectId })
       if (!data || (Array.isArray(data) && data.length == 0)) {
         return NextResponse.json(
           {
@@ -150,7 +168,7 @@ export async function PATCH(
         if (data[0].carburants && Array.isArray(data[0].carburants) && data[0].carburants.length > indexCarburant && indexCarburant >= 0) {
             data[0].carburants[indexCarburant].name = name
             data[0].carburants[indexCarburant].price = price
-            await mongo.findOneAndReplace("db_essence", collection, { _id: id.toString }, {$set: {carburants: data[0].carburants}})
+            await mongo.updateOne("db_essence", collection, { _id: objectId }, {$set: {carburants: data[0].carburants}})
             return NextResponse.json(
                 {
                     success: true,
@@ -217,8 +235,10 @@ export async function DELETE(
       )
     }
 
+    const objectId = new ObjectId(id)
+
     if (collection === 'stations') {
-      const data = await mongo.find("db_essence", collection, { _id: id.toString })
+      const data = await mongo.find("db_essence", collection, { _id: objectId })
       if (!data || (Array.isArray(data) && data.length == 0)) {
         return NextResponse.json(
           {
@@ -230,7 +250,7 @@ export async function DELETE(
       }
         if (data[0].carburants && Array.isArray(data[0].carburants) && data[0].carburants.length > indexCarburant && indexCarburant >= 0) {
             data[0].carburants.splice(indexCarburant, 1)
-            await mongo.findOneAndReplace("db_essence", collection, { _id: id.toString }, {$set: {carburants: data[0].carburants}})
+            await mongo.updateOne("db_essence", collection, { _id: objectId }, {$set: {carburants: data[0].carburants}})
             return NextResponse.json(
                 {
                     success: true,

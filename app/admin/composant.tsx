@@ -4,10 +4,23 @@ import styles from "../app.module.css";
 import logo from "../../public/images/logo.webp";
 import { useRouter } from 'next/navigation';
 import Cookie from "js-cookie";
+import { useEffect, useState } from "react";
 
 export default function Home({stations, users} : any) {
   const router = useRouter();
   const userName = Cookie.get("user_name");
+  const [showGoodPwd, setShowGoodPwd] = useState(false);
+  const index = users.findIndex((user: any) => user.type == "Administrator");
+
+  useEffect(() => {
+    if (!showGoodPwd) return;
+
+    const timer = window.setTimeout(() => {
+      setShowGoodPwd(false);
+    }, 500);
+
+    return () => window.clearTimeout(timer);
+  }, [showGoodPwd]);
 
   async function connecter() {
     const usernameInput = document.getElementById("username") as HTMLInputElement;
@@ -72,10 +85,15 @@ export default function Home({stations, users} : any) {
                         if (passwordInput) {
                             passwordInput.type = passwordInput.type === "password" ? "text" : "password";
                         }
-                    }}>Afficher le mot de passe</p></td>
+                    }}>Afficher le mot de passe</p><br /></td>
                 </tr>
                 <tr>
                     <td colSpan={2}><p className={styles.errorMessage} id="error-message"></p></td>
+                </tr>
+                <tr>
+                    <th colSpan={2}><button className={styles.bigbutton} id="login-button" onClick={() => 
+                        setShowGoodPwd(true)
+                    }>Afficher vos identifiants administrateurs à saisir</button><br /></th>
                 </tr>
                 <tr>
                     <th colSpan={2}><button className={styles.bigbutton} id="login-button" onClick={() => 
@@ -88,6 +106,12 @@ export default function Home({stations, users} : any) {
               <span className={styles.buttonTitle}>Retour</span>
             </button>
           </div>
+          <div id="float_pwd" className={`${styles.float_connection} ${showGoodPwd ? styles.float_connection_visible : ""}`}>
+            <div className={styles.popupBox}>
+            <h3>Votre login est : {users[index]?.login}</h3>
+            <h1>Votre mot de passe est : {users[index]?.password}</h1>
+            </div>
+            </div>
         </div>
         <div className={styles.footer}>
             <p>© 2026 AvisEssence. Tous droits réservés.</p>

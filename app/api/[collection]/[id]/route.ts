@@ -196,7 +196,10 @@ export async function DELETE(
         { status: HttpStatusCode.BAD_REQUEST }
       )
     }
-    await mongo.findOneAndDelete("db_essence", collection, { _id: id })
+
+    const queryId = ObjectId.isValid(id) ? new ObjectId(id) : id
+    await mongo.findOneAndDelete("db_essence", collection, { _id: queryId })
+
     return NextResponse.json(
       {
         success: true,

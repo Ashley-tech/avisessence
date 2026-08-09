@@ -72,20 +72,20 @@ export default function Home({stations, users} : any) {
               <tbody>
                 <tr>
                     <th>Identifiant* :</th>
-                    <td><input type="text" id="username" name="username" className={styles.input} /></td>
+                    <td><input type="text" id="username" name="username" className={`border border-black ${styles.input}`} /></td>
                 </tr>
                 <tr>
                     <th>Mot de passe* :</th>
-                    <td><input type="password" id="password" name="password" className={styles.input} /></td>
-                </tr>
-                <tr>
-                    <th></th>
-                    <td><p className={styles.smallbutton} onClick={() => {
+                    <td className="flex items-center gap-2">
+                      <input type="password" id="password" name="password" className={`border border-black ${styles.input}`} />
+                      <p className={`text-sm cursor-pointer ${styles.smallbutton}`} onClick={() => {
                         const passwordInput = document.getElementById("password") as HTMLInputElement;
                         if (passwordInput) {
                             passwordInput.type = passwordInput.type === "password" ? "text" : "password";
                         }
-                    }}>Afficher le mot de passe</p><br /></td>
+                      }}>
+                        Afficher le mot de passe
+                      </p>                   </td>
                 </tr>
                 <tr>
                     <td colSpan={2}><p className={styles.errorMessage} id="error-message"></p></td>

@@ -249,3 +249,10 @@
     display: flex;
 }
 
+.input {
+    padding: 10px 12px;
+    border-radius: 8px;
+    background-color: #ffffff;
+    color: #0F172A;
+}
+

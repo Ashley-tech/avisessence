@@ -11,7 +11,7 @@ export default function Composant({station, users} : any) {
   const userName = Cookie.get("user_name");
   var indexCarburant = 0;
   function buttonAddAvis(index: number) {
-    if (userName) {
+    if (userName && users[index].type == "Local") {
       return <button className={styles.smallbutton} onClick={() => ouvrirFenetreAddAvis(index)} id={"candidatures-button-"+index}>
         <span className={styles.buttonTitle}>Ajouter un avis</span>
       </button>

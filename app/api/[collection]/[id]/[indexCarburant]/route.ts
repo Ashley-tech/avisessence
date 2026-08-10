@@ -107,14 +107,6 @@ export async function POST(
         { status: HttpStatusCode.BAD_REQUEST }
       )
     }
-
-    return NextResponse.json(
-      {
-        success: true,
-        raison: 'Resource updated successfully'
-      },
-      { status: HttpStatusCode.OK }
-    )
   } catch (error) {
     return NextResponse.json(
       {
@@ -146,7 +138,7 @@ export async function PATCH(
 
     if (collection === 'stations') {
       const { name, price } = await request.json()
-      if (!name || !price) {
+      if (!name || typeof price !== 'number') {
         return NextResponse.json(
           {
             success: false,

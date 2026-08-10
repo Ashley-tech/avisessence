@@ -57,7 +57,7 @@ export async function POST(
 
     if (collection === 'stations') {
       const { name, price } = await request.json()
-      if (!name || !price) {
+      if (!name || typeof price !== 'number') {
         return NextResponse.json(
           {
             success: false,
@@ -66,13 +66,11 @@ export async function POST(
           { status: HttpStatusCode.BAD_REQUEST }
         )
       } 
-      const carburant = {
-        name: name,
-        price: price,
-        avis: []
-      }
+      let data = await mongo.find("db_essence", collection, { _id: objectId })
+      let carburants = data[0]?.carburants || []
+      carburants.push({ name, price, avis: [] })
 
-      await mongo.updateOne("db_essence", collection, { _id: objectId }, { $set: { carburants: [carburant ] } })
+      await mongo.updateOne("db_essence", collection, { _id: objectId }, { $set: { carburants: carburants } })
     } else {
       return NextResponse.json(
         {

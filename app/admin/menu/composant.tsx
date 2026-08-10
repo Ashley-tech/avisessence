@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "../../app.module.css";
 import logo from "../../../public/images/logo.webp"
 import Image from "next/image"
@@ -14,6 +14,88 @@ export default function Composant({stations, users} : any) {
     const [selectedStationIndex, setSelectedStationIndex] = useState<number>(-1);
     const [selectedCarburantIndex, setSelectedCarburantIndex] = useState<number>(-1);
     const [showConfirmDeleteStation, setShowConfirmDeleteStation] = useState(false);
+    const [showNewCarburant, setShowNewCarburant] = useState(false);
+    const [showModifyCarburant, setShowModifyCarburant] = useState(false);
+    const [showConfirmDeleteCarburant, setShowConfirmDeleteCarburant] = useState(false);
+    const [showModifyAdminInfos, setShowModifyAdminInfos] = useState(false);
+    const [prix, setPrix] = useState<string>("0");
+    const [showInfos, setShowInfos] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [userName, setUserName] = useState<string>("");
+    useEffect(() => {
+      const cookieUser = Cookie.get("user_name") || "";
+      setUserName(cookieUser);
+    }, []);
+    const index = users.findIndex((user: any) => user.type == "Administrator" && user.login == userName);
+    const oldPassword = users[index]?.password || "";
+
+    function openModifyCarburantPopup(stationIndex: number, carburantIndex: number) {
+        setSelectedStationIndex(stationIndex);
+        setSelectedCarburantIndex(carburantIndex);
+        (document.getElementById("nomeu") as HTMLInputElement).value = stations[stationIndex].carburants[carburantIndex].name;
+        setPrix(stations[stationIndex].carburants[carburantIndex].price.toString());
+        document.getElementById("error-message-uc")!.textContent = "";
+        (document.getElementById("popup-title-modify-carburant") as HTMLHeadingElement).textContent = `Modifier le carburant "${stations[stationIndex].carburants[carburantIndex].name}" pour la station "${stations[stationIndex].name}"`;
+        setShowModifyCarburant(true);
+    }
+
+    async function updateCarburant(stationIndex: number, carburantIndex: number) {
+        const nomInput = document.getElementById("nomeu") as HTMLInputElement;
+        const prixInput = document.getElementById("prixu") as HTMLInputElement;
+        if (nomInput.value == "" || prixInput.value == "") {
+            document.getElementById("error-message-uc")!.textContent = "Un champ ne peut pas être vide. Veuillez remplir tous les champs obligatoires.";
+            return;
+        }
+        if (isNaN(parseFloat(prixInput.value)) || parseFloat(prixInput.value) < 0) {
+            document.getElementById("error-message-uc")!.textContent = "Le prix doit être un nombre valide et positif.";
+            return;
+        }
+        try {
+            const response = await fetch(`/api/stations/${stations[stationIndex]._id}/${carburantIndex}`, {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                name: nomInput.value,
+                price: parseFloat(prixInput.value)
+              })
+            });
+            const result = await response.json();
+            if (result.success) {
+                location.reload();
+            } else {
+                document.getElementById("error-message-uc")!.textContent = result.raison || "Erreur lors de la mise à jour du carburant. Veuillez réessayer.";
+            }
+        } catch (error) {
+            console.error("Erreur lors de la mise à jour du carburant :", error);
+            document.getElementById("error-message-uc")!.textContent = "Erreur lors de la mise à jour du carburant. Veuillez réessayer.";
+        }
+      }
+
+    async function deleteCarburant(stationIndex: number, carburantIndex: number) {
+        let data: any = { success: false, raison: 'Erreur lors de la suppression du carburant. Veuillez réessayer.' };
+        try {
+            const response = await fetch(`/api/stations/${stations[stationIndex]._id}/${carburantIndex}`, {
+                method: 'DELETE',
+            });
+            const result = await response.json();
+            data = result;
+            if (data.success) {
+                location.reload();
+            } else {
+              alert(data.raison || 'Erreur lors de la suppression du carburant. Veuillez réessayer.');
+            }
+        } catch (error) {
+            console.error('Erreur lors de la suppression du carburant :', error);
+            alert('Erreur lors de la suppression du carburant. Veuillez réessayer.');
+        }
+      }
+
+      function openConfirmDeleteCarburantPopup(stationIndex: number, carburantIndex: number) {
+        setShowModifyCarburant(false);
+        setShowConfirmDeleteCarburant(true);
+      }
 
     async function addStation() {
         const nomInput = document.getElementById("nom") as HTMLInputElement;
@@ -81,6 +163,94 @@ export default function Composant({stations, users} : any) {
           }
         } catch (error) {
           console.error('Erreur lors de la suppression de la station:', error);
+        }
+      }
+      
+      function openNewCarburantPopup(stationIndex: number) {
+        setSelectedStationIndex(stationIndex);
+        (document.getElementById("nome") as HTMLInputElement).value = "";
+        (document.getElementById("prix") as HTMLInputElement).value = "";
+        document.getElementById("error-message-nc")!.textContent = "";
+        (document.getElementById("popup-title-new-carburant") as HTMLHeadingElement).textContent = `Ajouter un nouveau carburant pour la station "${stations[stationIndex].name}"`;
+        setShowNewCarburant(true);
+      }
+
+      async function updateAdminInfos() {
+        const loginInput = document.getElementById("login") as HTMLInputElement;
+        const mailInput = document.getElementById("mail") as HTMLInputElement;
+        const passwordInput = document.getElementById("password") as HTMLInputElement;
+        const passwordConfirmInput = document.getElementById("password-confirm") as HTMLInputElement;
+
+        if (loginInput.value == "" || mailInput.value == "") {
+            document.getElementById("error-message-infos")!.textContent = "Le login et le mail ne peuvent pas être vides. Veuillez remplir tous les champs obligatoires.";
+            return;
+        }
+        if (passwordInput.value != "" || passwordConfirmInput.value != "") {
+            if (passwordInput.value != passwordConfirmInput.value) {
+                document.getElementById("error-message-infos")!.textContent = "Les mots de passe ne correspondent pas. Veuillez réessayer.";
+                return;
+            }
+        }
+        var newPassword = passwordInput.value;
+        if (passwordInput.value == "" && passwordConfirmInput.value == "") {
+            newPassword = oldPassword;
+        }
+
+        try {
+            const response = await fetch('/api/login/admin', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    login: loginInput.value,
+                    mail: mailInput.value,
+                    password: newPassword
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+              Cookie.set("user_name", loginInput.value);
+                setShowModifyAdminInfos(false);
+                setShowSuccess(true);
+            } else {
+                document.getElementById("error-message-infos")!.textContent = data.raison || "Erreur lors de la mise à jour des informations de l'administrateur. Veuillez réessayer.";
+            }
+        } catch (error) {
+            document.getElementById("error-message-infos")!.textContent = "Erreur lors de la mise à jour des informations de l'administrateur. Veuillez réessayer.";
+        }
+      }
+
+      async function addCarbrant(indexStation: number) {
+        const nomInput = document.getElementById("nome") as HTMLInputElement;
+        const prixInput = document.getElementById("prix") as HTMLInputElement;
+        if (nomInput.value == "" || prixInput.value == "") {
+            document.getElementById("error-message-nc")!.textContent = "Veuillez remplir tous les champs obligatoires.";
+            return;
+        }
+        if (isNaN(parseFloat(prixInput.value)) || parseFloat(prixInput.value) < 0) {
+            document.getElementById("error-message-nc")!.textContent = "Le prix doit être un nombre positif.";
+            return;
+        }
+        try {
+            const response = await fetch(`/api/stations/${stations[indexStation]._id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: nomInput.value,
+                    price: parseFloat(prixInput.value)
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+              location.reload();
+            } else {
+              document.getElementById("error-message-nc")!.textContent = data.raison || "Erreur lors de l'ajout du carburant. Veuillez réessayer.";
+            }
+        } catch (error) {
+            document.getElementById("error-message-nc")!.textContent = "Erreur lors de l'ajout du carburant. Veuillez réessayer.";
         }
       }
 
@@ -153,6 +323,15 @@ export default function Composant({stations, users} : any) {
         (document.getElementById("delete-station-title") as HTMLHeadingElement).textContent = `Êtes-vous sûr de vouloir supprimer la station "${stations[stationIndex].name}" ?`;
     }
 
+    function openModifyAdminInfosPopup() {
+      setShowModifyAdminInfos(true);
+        (document.getElementById("login") as HTMLInputElement).value = users[0].login;
+        (document.getElementById("mail") as HTMLInputElement).value = users[0].mail;
+        (document.getElementById("password") as HTMLInputElement).value = "";
+        (document.getElementById("password-confirm") as HTMLInputElement).value = "";
+        document.getElementById("error-message-infos")!.textContent = "";
+    }
+
     function openModifyStationPopup(stationIndex: number) {
         setSelectedStationIndex(stationIndex);
         (document.getElementById("nomm") as HTMLInputElement).value = stations[stationIndex].name;
@@ -190,7 +369,7 @@ export default function Composant({stations, users} : any) {
                     </thead>
                     <tbody>
                         {stations.map((station: any) => (
-                            <tr key={station._id}>
+                            <tr key={station._id} className="border-y border-gray-600">
                                 <td>{station.name}</td>
                                 <td>{station.mark}</td>
                                 <td>{station.localisation.adress}, {station.localisation.postalCode}, {station.localisation.city} ({station.localisation.department}, {station.localisation.region})</td>
@@ -201,6 +380,7 @@ export default function Composant({stations, users} : any) {
                                       <button className={styles.smallbutton} onClick={() => {
                                         setSelectedStationIndex(stations.findIndex((s: any) => s._id === station._id));
                                         setSelectedCarburantIndex(index);
+                                        openModifyCarburantPopup(stations.findIndex((s: any) => s._id === station._id), index);
                                       }}>
                                         Modifier
                                       </button>
@@ -212,7 +392,7 @@ export default function Composant({stations, users} : any) {
                                     <button className={styles.smallbutton} onClick={() => openModifyStationPopup(stations.findIndex((s: any) => s._id === station._id))}>
                                         Modifier
                                     </button><br />
-                                    <button className={styles.smallbutton}>
+                                    <button className={styles.smallbutton} onClick={() => openNewCarburantPopup(stations.findIndex((s: any) => s._id === station._id))}>
                                         Nouveau carburant
                                     </button><br />
                                     <button className={styles.smallbutton} onClick={() => openConfirmDeleteStationPopup(stations.findIndex((s: any) => s._id === station._id))}>
@@ -227,6 +407,9 @@ export default function Composant({stations, users} : any) {
             <button className={styles.bigbutton} id="nouvelle-station-button" onClick={openNewStationPopup}>
               <span className={styles.buttonTitle}>Nouvelle station</span>
             </button>
+            <button className={styles.bigbutton} id="modifier-informations-button" onClick={() => setShowInfos(true)}>
+              <span className={styles.buttonTitle}>Vos informations administratives</span>
+            </button>
             <button className={styles.bigbutton} id="deconnect-button" onClick={() => setShowConfirmDeconnection(true)}>
               <span className={styles.buttonTitle}>Déconnexion</span>
             </button>
@@ -234,7 +417,64 @@ export default function Composant({stations, users} : any) {
               <span className={styles.buttonTitle}>Retour</span>
             </button>
           </div>
-          <div id="float_ns" className={`${styles.float_modification_infos} ${showNewStation ? styles.float_modification_infos_visible : ""}`}>
+      <div id="float_modifyinfos" className={`${styles.float_modification_infos} ${showInfos ? styles.float_modification_infos_visible : ""}`}>
+        <div className={styles.popupBox}>
+          <button type="button" className={styles.popupClose} onClick={() => setShowInfos(false)}>
+            ×
+          </button>
+          <h3>Vos informations</h3>
+              <p>Vous êtes connecté en tant que : <strong id="userLi">{userName}</strong></p>
+              <p>Votre adresse e-mail est : <strong id='emailLi'>{users[index]?.mail}</strong></p>
+              <p>Votre mot de passe contient <strong id="password-length">{users[index]?.password.length}</strong> caractère(s)</p>
+              <button className={styles.popupAction} onClick={() => {
+                setShowInfos(false);
+                openModifyAdminInfosPopup();
+              }}>
+                Modifier vos informations
+              </button>
+        </div>
+      </div>
+      <div id="float_modifyinfos" className={`${styles.float_modification_infos} ${showModifyAdminInfos ? styles.float_modification_infos_visible : ""}`}>
+        <div className={styles.popupBox}>
+          <button type="button" className={styles.popupClose} onClick={() => setShowModifyAdminInfos(false)}>
+            ×
+          </button>
+          <h3>Modifier vos informations administratives</h3>
+          <table>
+            <tbody>
+              <tr>
+                <td>Login* :</td>
+                <td><input type="text" placeholder="Login" id="login" /></td>
+              </tr>
+              <tr>
+                <td>Mail* :</td>
+                <td><input type="email" placeholder="Mail" id="mail" /></td>
+              </tr>
+              <tr>
+                <td>Nouveau mot de passe :</td>
+                <td><input type="password" placeholder="Nouveau mot de passe" id="password" /></td>
+              </tr>
+              <tr>
+                <td>Nouveau mot de passe (à reconfirmer) :</td>
+                <td><input type="password" placeholder="Nouveau mot de passe (à reconfirmer)" id="password-confirm" /></td>
+              </tr>
+            </tbody>
+          </table>
+          <p id="error-message-infos" className={styles.errorMessage}></p>
+          <button className={styles.popupAction} onClick={() => {
+            updateAdminInfos();
+          }}>
+            Modifier
+          </button>
+          <button className={styles.popupAction} onClick={() => {
+            setShowModifyAdminInfos(false);
+            setShowInfos(true);
+          }}>
+            Annuler
+          </button>
+        </div>
+      </div>
+      <div id="float_ns" className={`${styles.float_modification_infos} ${showNewStation ? styles.float_modification_infos_visible : ""}`}>
         <div className={styles.popupBox}>
           <button type="button" className={styles.popupClose} onClick={() => setShowNewStation(false)}>
             ×
@@ -275,6 +515,84 @@ export default function Composant({stations, users} : any) {
           <p id="error-message" className={styles.errorMessage}></p>
           <button className={styles.popupAction} onClick={() => addStation()}>
             Ajouter
+          </button>
+        </div>
+      </div>
+      <div id="float_nc" className={`${styles.float_modification_infos} ${showNewCarburant ? styles.float_modification_infos_visible : ""}`}>
+        <div className={styles.popupBox}>
+          <button type="button" className={styles.popupClose} onClick={() => setShowNewCarburant(false)}>
+            ×
+          </button>
+          <h3 id="popup-title-new-carburant">Ajouter un nouveau carburant</h3>
+          <table>
+            <tbody>
+              <tr>
+                <td>Nom* :</td>
+                <td><input type="text" placeholder="Nom" id="nome" /></td>
+              </tr>
+              <tr>
+                <td>Prix* :</td>
+                <td><input
+                  type="number"
+                  placeholder="Prix"
+                  id="prix"
+                  min="0"
+                  step="0.001"
+                  value={prix}
+                  onChange={(e) => setPrix(e.target.value)}
+                /></td>
+              </tr>
+            </tbody>
+          </table>
+          <p id="error-message-nc" className={styles.errorMessage}></p>
+          <button className={styles.popupAction} onClick={() => addCarbrant(selectedStationIndex)}>
+            Ajouter
+          </button>
+        </div>
+      </div>
+      <div id="float_ncu" className={`${styles.float_modification_infos} ${showSuccess ? styles.float_modification_infos_visible : ""}`}>
+        <div className={styles.popupBox}>
+          <button type="button" className={styles.popupClose} onClick={() => setShowModifyCarburant(false)}>
+            ×
+          </button>
+          <h3 id="popup-title-modify-carburant">Vos informations administratives ont été mises à jour avec succès.</h3>
+          <button className={styles.popupAction} onClick={() => location.reload()}>
+            OK
+            </button>
+        </div>
+      </div>
+      <div id="float_ncu" className={`${styles.float_modification_infos} ${showModifyCarburant ? styles.float_modification_infos_visible : ""}`}>
+        <div className={styles.popupBox}>
+          <button type="button" className={styles.popupClose} onClick={() => setShowModifyCarburant(false)}>
+            ×
+          </button>
+          <h3 id="popup-title-modify-carburant">Modifier le carburant</h3>
+          <table>
+            <tbody>
+              <tr>
+                <td>Nom* :</td>
+                <td><input type="text" placeholder="Nom" id="nomeu" /></td>
+              </tr>
+              <tr>
+                <td>Prix* :</td>
+                <td><input
+                  type="number"
+                  placeholder="Prix"
+                  id="prixu"
+                  min="0"
+                  step="0.001"
+                  value={prix}
+                  onChange={(e) => setPrix(e.target.value)}
+                /></td>
+              </tr>
+            </tbody>
+          </table>
+          <p id="error-message-uc" className={styles.errorMessage}></p>
+          <button className={styles.popupAction} onClick={() => updateCarburant(selectedStationIndex, selectedCarburantIndex)}>
+            Modifier
+          </button>
+          <button className={styles.popupAction} onClick={() => openConfirmDeleteCarburantPopup(selectedStationIndex, selectedCarburantIndex)}>
+            Supprimer ce carburant
           </button>
         </div>
       </div>
@@ -352,7 +670,23 @@ export default function Composant({stations, users} : any) {
                 Non
               </button>
             </div>
+          </div>
+          <div id="float_confirm_delete_carburant" className={`${styles.float_connection} ${showConfirmDeleteCarburant ? styles.float_connection_visible : ""}`}>
+            <div className={styles.popupBox}>
+            <h3 id="delete-carburant-title">Êtes-vous sûr de vouloir supprimer ce carburant ?</h3>
+            <button className={styles.popupAction} onClick={() => {
+                deleteCarburant(selectedStationIndex, selectedCarburantIndex);
+              }}>
+                Oui
+              </button>
+              <button className={styles.popupAction} onClick={() => {
+                setShowConfirmDeleteCarburant(false);
+                setShowModifyCarburant(true);
+              }}>
+                Non
+              </button>
             </div>
+          </div>
         </div>
         <div className={styles.footer}>
             <p>© 2026 AvisEssence. Tous droits réservés.</p>

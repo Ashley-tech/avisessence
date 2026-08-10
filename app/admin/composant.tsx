@@ -26,6 +26,8 @@ export default function Home({stations, users} : any) {
     const usernameInput = document.getElementById("username") as HTMLInputElement;
     const passwordInput = document.getElementById("password") as HTMLInputElement;
     const errorMessage = document.getElementById("error-message") as HTMLParagraphElement;
+    console.log("usernameInput.value", usernameInput.value);
+    console.log("passwordInput.value", passwordInput.value);
     try {
       const response = await fetch('/api/login/admin', {
         method: 'POST',

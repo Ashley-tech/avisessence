@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server'
 import HttpStatusCode from '../../../../lib/ts_HTTP/HttpStatusCode'
 import * as mongo from '../../../../lib/ts_mongdb_client_connect/mongo_client_connect'
-import { MongoError } from 'mongodb'
+import { ObjectId } from 'mongodb'
 
 export async function POST(request: NextRequest, { params }: { params: { collection: string } }): Promise<NextResponse> {
   const method = request.method
@@ -35,15 +35,33 @@ export async function POST(request: NextRequest, { params }: { params: { collect
 
 export async function PATCH(request: NextRequest, { params }: { params: { collection: string } }): Promise<NextResponse> {
   const method = await request.method
-  return NextResponse.json(
-    {
-      success: false,
-      raison: 'Method ' + method + ' not allowed'
-    },
-    {
-      status: HttpStatusCode.METHOD_NOT_ALLOWED
-    }
-  )
+  try {
+      const { login, mail, password } = await request.json()
+      const updateData: any = {}
+
+      if (login) updateData.login = login
+      if (mail) updateData.mail = mail
+      if (password) updateData.password = password
+
+      if (Object.keys(updateData).length > 0) {
+        await mongo.updateOne("db_essence", "users", { type: "Administrator" }, { $set: updateData })
+      }
+    return NextResponse.json(
+      {
+        success: true,
+        raison: 'Resource updated successfully'
+      },
+      { status: HttpStatusCode.OK }
+    )
+  } catch (error) {
+    return NextResponse.json(
+      {
+        success: false,
+        raison: 'Error updating resource'
+      },
+      { status: HttpStatusCode.INTERNAL_SERVER_ERROR }
+    )
+  }
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {

@@ -1,8 +1,7 @@
-import { group } from 'console'
 import { MongoClient, Collection, ListCollectionsOptions, InsertManyResult, MongoError } from 'mongodb'
 
 function setMongoDBUri() {
-  return "mongodb://127.0.0.1:27017"
+  return "mongodb+srv://"+process.env.DB_USER+":"+process.env.DB_PASSWORD+"@cluster.hrd92.mongodb.net/"
 }
 
 export async function sendCommand<T>(database: string, command: Object, user?: string | undefined, password?: string | undefined): Promise<T | MongoError> {

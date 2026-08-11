@@ -6,7 +6,7 @@ import { MongoError, ObjectId } from 'mongodb'
 export async function GET(request: NextRequest, { params }: { params: { collection: string } }): Promise<NextResponse> {
   const method = request.method
   const pathname = new URL(request.url).pathname
-  const collection = params.collection || pathname.split('/').filter(Boolean).pop() || ''
+  const collection = await params.collection || await pathname.split('/').filter(Boolean).pop() || ''
 
   if (!collection) {
     return NextResponse.json(

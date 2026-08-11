@@ -39,7 +39,30 @@ export async function PATCH(request: NextRequest, { params }: { params: { collec
       const { login, mail, password } = await request.json()
       const updateData: any = {}
 
-      if (login) updateData.login = login
+      const currentAdmin = await mongo.findOne("db_essence", "users", "type", "Administrator")
+      if (!currentAdmin) {
+        return NextResponse.json(
+          {
+            success: false,
+            raison: 'Administrateur introuvable.'
+          },
+          { status: HttpStatusCode.NOT_FOUND }
+        )
+      }
+
+      if (login && login !== (currentAdmin as any).login) {
+        const existingUser = await mongo.findOne("db_essence", "users", "login", login)
+        if (existingUser) {
+          return NextResponse.json(
+            {
+              success: false,
+              raison: 'Cet identifiant est déjà utilisé. Veuillez en choisir un autre.'
+            },
+            { status: HttpStatusCode.CONFLICT }
+          )
+        }
+        updateData.login = login
+      }
       if (mail) updateData.mail = mail
       if (password) updateData.password = password
 

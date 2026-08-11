@@ -14,6 +14,7 @@ export default function Composant({stations, users} : any) {
   const [userName, setUserName] = useState<string | null>(null);
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
+  const [showConfirmDelete, setShowConfirmDelete ] = useState(false)
   const [indexUserFound, setIndexUserFound] = useState<number | null>(-1);
 
   useEffect(() => {
@@ -128,7 +129,7 @@ export default function Composant({stations, users} : any) {
   }
 
   async function inscrire() {
-    (document.getElementById("message-error-signup-user") as HTMLParagraphElement).style.color = "rgb(255, 0, 0)";
+    (document.getElementById("error-message-signup-user") as HTMLParagraphElement).style.color = "rgb(255, 0, 0)";
     if (document.getElementById("iden") && document.getElementById("iden_confirm") && document.getElementById("email") && document.getElementById("email_confirm") && document.getElementById("mdpi") && document.getElementById("mdpir")) {
       const iden = (document.getElementById("iden") as HTMLInputElement).value;
       const iden_confirm = (document.getElementById("iden_confirm") as HTMLInputElement).value;
@@ -137,33 +138,33 @@ export default function Composant({stations, users} : any) {
       const mdpi = (document.getElementById("mdpi") as HTMLInputElement).value;
       const mdpir = (document.getElementById("mdpir") as HTMLInputElement).value;
       if (iden != iden_confirm) {
-        (document.getElementById("message-error-signup-user") as HTMLParagraphElement).textContent = "Les identifiants ne correspondent pas.";
+        (document.getElementById("error-message-signup-user") as HTMLParagraphElement).textContent = "Les identifiants ne correspondent pas.";
         return;
       }
       if (email != email_confirm) {
-        (document.getElementById("message-error-signup-user") as HTMLParagraphElement).textContent = "Les adresses e-mail ne correspondent pas.";
+        (document.getElementById("error-message-signup-user") as HTMLParagraphElement).textContent = "Les adresses e-mail ne correspondent pas.";
         return;
       }
       if (mdpi != mdpir) {
-        (document.getElementById("message-error-signup-user") as HTMLParagraphElement).textContent = "Les mots de passe ne correspondent pas.";
+        (document.getElementById("error-message-signup-user") as HTMLParagraphElement).textContent = "Les mots de passe ne correspondent pas.";
         return;
       }
       if (!regex(email, /^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-        (document.getElementById("message-error-signup-user") as HTMLParagraphElement).textContent = "L'adresse e-mail n'est pas valide.";
+        (document.getElementById("error-message-signup-user") as HTMLParagraphElement).textContent = "L'adresse e-mail n'est pas valide.";
         return;
       }
       if (!regex(mdpi, /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d-]{8,}$/)) {
-        (document.getElementById("message-error-signup-user") as HTMLParagraphElement).textContent = "Le mot de passe doit contenir au moins 8 caractères, dont au moins une lettre et un chiffre.";
+        (document.getElementById("error-message-signup-user") as HTMLParagraphElement).textContent = "Le mot de passe doit contenir au moins 8 caractères, dont au moins une lettre et un chiffre.";
         return;
       }
       const index = users.findIndex((user: any) => user.login === iden);
-      if (users[index].login != userName && index !== -1) {
-        (document.getElementById("message-error-signup-user") as HTMLParagraphElement).textContent = "Cet identifiant est déjà utilisé.";
+      if (index !== -1) {
+        (document.getElementById("error-message-signup-user") as HTMLParagraphElement).textContent = "Cet identifiant est déjà utilisé.";
         return;
       }
-      const indexEmail = users.findIndex((user: any) => user.mail === email);
+      const indexEmail = users.findIndex((user: any) => user.mail === email && user.type === "Local");
       if (indexEmail !== -1 && users[indexEmail].mail != users[index]?.mail) {
-        (document.getElementById("message-error-signup-user") as HTMLParagraphElement).textContent = "Cette adresse e-mail est déjà utilisée.";
+        (document.getElementById("error-message-signup-user") as HTMLParagraphElement).textContent = "Cette adresse e-mail est déjà utilisée.";
         return;
       }
       const response = await fetch("/api/users", {
@@ -179,8 +180,8 @@ export default function Composant({stations, users} : any) {
       });
       const result = await response.json();
       if (result.success) {
-        (document.getElementById("message-error-signup-user") as HTMLParagraphElement).textContent = "Inscription réussie.";
-        (document.getElementById("message-error-signup-user") as HTMLParagraphElement).style.color = "rgb(0, 255, 0)";
+        (document.getElementById("error-message-signup-user") as HTMLParagraphElement).textContent = "Inscription réussie.";
+        (document.getElementById("error-message-signup-user") as HTMLParagraphElement).style.color = "rgb(0, 255, 0)";
         (document.getElementById("mdpir") as HTMLInputElement).value = "";
         (document.getElementById("mdpi") as HTMLInputElement).value = "";
         (document.getElementById("email_confirm") as HTMLInputElement).value = "";
@@ -190,10 +191,10 @@ export default function Composant({stations, users} : any) {
         setShowSignup(false);
         setShowConnection(true);
       } else {
-        (document.getElementById("message-error-signup-user") as HTMLParagraphElement).textContent = "Erreur lors de l'inscription.";
+        (document.getElementById("error-message-signup-user") as HTMLParagraphElement).textContent = "Erreur lors de l'inscription.";
       }
     } else {
-      (document.getElementById("message-error-signup-user") as HTMLParagraphElement).textContent = "Veuillez remplir tous les champs.";
+      (document.getElementById("error-message-signup-user") as HTMLParagraphElement).textContent = "Veuillez remplir tous les champs.";
     }
   }
 
@@ -246,6 +247,7 @@ export default function Composant({stations, users} : any) {
             ×
           </button>
           <h3>Mot de passe oublié</h3>
+          <i>(Si vous avez oublié vos identifiants administrateur, vous pouvez aller le vérifier dans la rubrique "Administrateur" depuis l'accueil)</i>
           <table>
             <tbody>
               <tr>
@@ -362,7 +364,7 @@ export default function Composant({stations, users} : any) {
         (document.getElementById("btn_verifier_email") as HTMLButtonElement).classList.add("hidden");
         (document.getElementById("btn_modifier_mdp") as HTMLButtonElement).classList.remove("hidden");
         (document.getElementById("btn_modifier_mdp") as HTMLButtonElement).addEventListener("click", modifierMotDePasse);
-        const indexF = users.findIndex((user: any) => user.mail === email_forgot);
+        const indexF = users.findIndex((user: any) => user.mail === email_forgot && user.type === "Local");
         setIndexUserFound(indexF);
       } else {
         (document.getElementById("message-error-forgot-password") as HTMLParagraphElement).textContent = "Votre adresse e-mail n'existe pas dans notre base de données.";
@@ -404,7 +406,7 @@ export default function Composant({stations, users} : any) {
       (document.getElementById("message-error-modification-infos") as HTMLParagraphElement).style.color = "rgb(255, 0, 0)";
       return;
     }
-    const indexEmail = users.findIndex((user: any) => user.mail === email_modif);
+    const indexEmail = users.findIndex((user: any) => user.mail === email_modif && user.type === "Local");
     if (indexEmail !== -1 && indexEmail !== index) {
       (document.getElementById("message-error-modification-infos") as HTMLParagraphElement).textContent = "Cette adresse e-mail est déjà utilisée.";
       (document.getElementById("message-error-modification-infos") as HTMLParagraphElement).style.color = "rgb(255, 0, 0)";
@@ -478,6 +480,12 @@ export default function Composant({stations, users} : any) {
               </button>
               <button className={styles.popupAction} onClick={() => {
                 setShowConnection(false);
+                setShowConfirmDelete(true);
+              }}>
+                Supprimer votre compte
+              </button>
+              <button className={styles.popupAction} onClick={() => {
+                setShowConnection(false);
                 setShowConfirmLogout(true);
               }}>
                 Déconnexion
@@ -542,6 +550,28 @@ export default function Composant({stations, users} : any) {
     }
   }
 
+  async function deleteUser() {
+    let data: any = { success: false, raison: 'Erreur lors de la suppression de votre compte. Veuillez réessayer.' };
+    const index = users.findIndex((obj : any) => obj.login === userName && obj.type === "Local")
+    try {
+      const response = await fetch(`/api/users/${users[index]._id}`, {
+        method: 'DELETE',
+      });
+      const result = await response.json();
+      data = result;
+      if (data.success) {
+        Cookie.remove("user_name");
+        setShowConfirmLogout(false);
+        location.reload();
+      } else {
+        alert(data.raison || 'Erreur lors de la suppression de votre compte. Veuillez réessayer.');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression de votre compte :', error);
+      alert('Erreur lors de la suppression de votre compte. Veuillez réessayer.');
+    }
+  }
+
   return (
     <div>
       <div className={styles.header}>
@@ -584,6 +614,20 @@ export default function Composant({stations, users} : any) {
               </button>
               <button className={styles.popupAction} onClick={() => {
                   setShowConfirmLogout(false);
+                  setShowConnection(true);
+              }}>
+                Non
+              </button>
+          </div>
+        </div>
+        <div id="float_confirm_delete_account" className={`${styles.float_connection} ${showConfirmDelete ? styles.float_connection_visible : ""}`}>
+          <div className={styles.popupBox}>
+            <h1>Êtes-vous sûr de vouloir supprimer votre compte ?</h1>
+            <button className={styles.popupAction} onClick={deleteUser}>
+                Oui
+              </button>
+              <button className={styles.popupAction} onClick={() => {
+                  setShowConfirmDelete(false);
                   setShowConnection(true);
               }}>
                 Non

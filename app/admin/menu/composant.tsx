@@ -190,9 +190,16 @@ export default function Composant({stations, users} : any) {
                 return;
             }
         }
+    
         var newPassword = passwordInput.value;
         if (passwordInput.value == "" && passwordConfirmInput.value == "") {
             newPassword = oldPassword;
+        }
+
+        const ind = users.findIndex((user: any) => user.login === loginInput.value && user.login !== userName);
+        if (ind !== -1) {
+          document.getElementById("error-message-infos")!.textContent = "Cet identifiant est déjà utilisé. Veuillez en choisir un autre.";
+          return;
         }
 
         try {

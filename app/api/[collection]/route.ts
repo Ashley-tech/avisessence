@@ -65,7 +65,7 @@ export async function POST(request: NextRequest, { params }: { params: { collect
       const result = await mongo.insertOne(
         "db_essence",
         collection,
-        { login: login, mail: mail, password: password, type: "Local", deleted: false }
+        { login: login, mail: mail, password: password, type: "Local" }
       )
 
       if (!result || (result as any).acknowledged !== true) {

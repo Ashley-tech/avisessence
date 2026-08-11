@@ -67,7 +67,7 @@ export async function POST(
         )
       } 
       let data = await mongo.find("db_essence", collection, { _id: objectId })
-      let carburants = data[0]?.carburants || []
+      let carburants = (data as any)[0]?.carburants || []
       carburants.push({ name, price, avis: [] })
 
       await mongo.updateOne("db_essence", collection, { _id: objectId }, { $set: { carburants: carburants } })

@@ -14,8 +14,8 @@ export default async function Page({
         return d
     }
 
-    const datas = await getDatas("stations") as any[];
-    const users = await getDatas("users");
+    const datas = (await getDatas("stations")) as unknown as any[];
+    const users = (await getDatas("users")) as unknown as any[];
     const index = (datas as any[]).findIndex((station: any) => station._id === id);
 
   return (

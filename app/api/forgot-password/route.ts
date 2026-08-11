@@ -7,7 +7,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const method = request.method
   const { mail } = await request.json()
 
-  const user = await mongo.find("db_essence","users", {mail: mail})
+  const user = await mongo.find("db_essence","users", {mail: mail, type: "Local"})
   if (!user || (Array.isArray(user) && user.length == 0)) {
     return NextResponse.json(
       {
@@ -33,34 +33,62 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 }
 
 export async function PATCH(request: NextRequest): Promise<NextResponse> {
-  const method = await request.method
-  const { newMail, newPassword } = await request.json()
-  if (!newMail && !newPassword) {
+  try {
+    const { mail, newPassword } = await request.json()
+
+    if (!mail || !newPassword) {
+      return NextResponse.json(
+        {
+          success: false,
+          raison: 'Both mail and newPassword must be provided'
+        },
+        {
+          status: HttpStatusCode.BAD_REQUEST
+        }
+      )
+    }
+
+    const updateResult = await mongo.updateOne(
+      'db_essence',
+      'users',
+      { mail, type: 'Local' },
+      { $set: { password: newPassword } }
+    )
+
+    if (!updateResult || updateResult.matchedCount === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          raison: 'User with this email does not exist'
+        },
+        {
+          status: HttpStatusCode.UNAUTHORIZED
+        }
+      )
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        raison: 'Password updated successfully'
+      },
+      {
+        status: HttpStatusCode.OK
+      }
+    )
+  } catch (error) {
+    console.error('Forgot-password PATCH error:', error)
+
     return NextResponse.json(
       {
         success: false,
-        raison: 'At least one of newMail or newPassword must be provided'
+        raison: 'Internal server error'
       },
       {
-        status: HttpStatusCode.BAD_REQUEST
+        status: HttpStatusCode.INTERNAL_SERVER_ERROR
       }
     )
   }
-  if (newMail) {
-    await mongo.findOneAndReplace("db_essence", "users", { mail: newMail }, { $set: { mail: newMail } })
-  }
-  if (newPassword) {
-    await mongo.findOneAndReplace("db_essence", "users", { mail: newMail }, { $set: { password: newPassword } })
-  }
-  return NextResponse.json(
-    {
-      success: true,
-      raison: 'Mail or password updated successfully'
-    },
-    {
-      status: HttpStatusCode.OK
-    }
-  )
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {

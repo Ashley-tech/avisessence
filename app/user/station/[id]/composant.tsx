@@ -4,14 +4,18 @@ import styles from "../../../app.module.css"
 import logo from "../../../../public/images/logo.webp"
 import Image from "next/image"
 import Cookie from "js-cookie";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Composant({station, users} : any) {
   const [showAddAvis, setShowAddAvis] = useState(false);
-  const userName = Cookie.get("user_name");
+  const [userName, setUserName] = useState<string | null>(null);
+  useEffect(() => {
+    setUserName(Cookie.get("user_name") ?? null);
+  }, []);
   var indexCarburant = 0;
   function buttonAddAvis(index: number) {
-    if (userName && users[index].type == "Local") {
+    const i = users.findIndex((user: any) => user.login === userName);
+    if (userName && users[i].type == "Local") {
       return <button className={styles.smallbutton} onClick={() => ouvrirFenetreAddAvis(index)} id={"candidatures-button-"+index}>
         <span className={styles.buttonTitle}>Ajouter un avis</span>
       </button>
@@ -20,9 +24,14 @@ export default function Composant({station, users} : any) {
   }
 
   function ouvrirFenetreAddAvis(index: number) {
-    document.getElementById("message-error")!.textContent = "";
-    document.getElementById("note")!.value = "";
-    document.getElementById("commentary")!.value = "";
+    const messageError = document.getElementById("message-error");
+    const noteInput = document.getElementById("note") as HTMLInputElement | null;
+    const commentaryTextarea = document.getElementById("commentary") as HTMLTextAreaElement | null;
+
+    if (messageError) messageError.textContent = "";
+    if (noteInput) noteInput.value = "";
+    if (commentaryTextarea) commentaryTextarea.value = "";
+
     indexCarburant = index;
     console.log("Index carburant sélectionné :", indexCarburant);
     setShowAddAvis(true);

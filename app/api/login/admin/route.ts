@@ -3,7 +3,7 @@ import HttpStatusCode from '../../../../lib/ts_HTTP/HttpStatusCode'
 import * as mongo from '../../../../lib/ts_mongdb_client_connect/mongo_client_connect'
 import { ObjectId } from 'mongodb'
 
-export async function POST(request: NextRequest, { params }: { params: { collection: string } }): Promise<NextResponse> {
+export async function POST(request: NextRequest, { params }: { params: Promise<{}> }): Promise<NextResponse> {
   const method = request.method
   const { login, password } = await request.json()
 
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest, { params }: { params: { collect
   )
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { collection: string } }): Promise<NextResponse> {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{}> }): Promise<NextResponse> {
   const method = await request.method
   try {
       const { login, mail, password } = await request.json()

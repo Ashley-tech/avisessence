@@ -16,11 +16,12 @@ type StationDocument = {
   carburants?: StationCarburant[]
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ collection: string; id: string, indexCarburant: number }> }
-): Promise<NextResponse> {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ collection: string; id: string; indexCarburant: string }> }) {
   const { collection, id, indexCarburant } = await params
+  const index = Number(indexCarburant)
+  if (Number.isNaN(index)) {
+    return NextResponse.json({ error: 'indexCarburant invalide' }, { status: 400 })
+  }
   return NextResponse.json(
     {
       success: false,
@@ -32,7 +33,7 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ collection: string; id: string, indexCarburant: number }> }
+  { params }: { params: Promise<{ collection: string; id: string; indexCarburant: string }> }
 ): Promise<NextResponse> {
   try {
     const { collection, id, indexCarburant } = await params
@@ -42,6 +43,14 @@ export async function POST(
           success: false,
           raison: 'Collection, ID, and indexCarburant are required'
         },
+        { status: HttpStatusCode.BAD_REQUEST }
+      )
+    }
+
+    const index = Number(indexCarburant)
+    if (Number.isNaN(index)) {
+      return NextResponse.json(
+        { success: false, raison: 'indexCarburant invalide' },
         { status: HttpStatusCode.BAD_REQUEST }
       )
     }
@@ -84,12 +93,12 @@ export async function POST(
 
       const station = data[0]
       const carburants = station?.carburants
-      if (Array.isArray(carburants) && carburants.length > indexCarburant && indexCarburant >= 0) {
+      if (Array.isArray(carburants) && carburants.length > index && index >= 0) {
         const now = new Date()
         const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
         const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`
 
-        const carburant = carburants[indexCarburant]
+        const carburant = carburants[index]
         const avis = Array.isArray(carburant.avis) ? carburant.avis : []
         avis.push({
           noteSur5: note,
@@ -138,7 +147,7 @@ export async function POST(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ collection: string; id: string, indexCarburant: number }> }
+  { params }: { params: Promise<{ collection: string; id: string; indexCarburant: string }> }
 ): Promise<NextResponse> {
   try {
     const { collection, id, indexCarburant } = await params
@@ -148,6 +157,14 @@ export async function PATCH(
           success: false,
           raison: 'Collection, ID, and indexCarburant are required'
         },
+        { status: HttpStatusCode.BAD_REQUEST }
+      )
+    }
+
+    const index = Number(indexCarburant)
+    if (Number.isNaN(index)) {
+      return NextResponse.json(
+        { success: false, raison: 'indexCarburant invalide' },
         { status: HttpStatusCode.BAD_REQUEST }
       )
     }
@@ -175,9 +192,9 @@ export async function PATCH(
           { status: HttpStatusCode.NOT_FOUND }
         )
       }
-        if (data[0].carburants && Array.isArray(data[0].carburants) && data[0].carburants.length > indexCarburant && indexCarburant >= 0) {
-            data[0].carburants[indexCarburant].name = name
-            data[0].carburants[indexCarburant].price = price
+        if (data[0].carburants && Array.isArray(data[0].carburants) && data[0].carburants.length > index && index >= 0) {
+          data[0].carburants[index].name = name
+          data[0].carburants[index].price = price
             await mongo.updateOne("db_essence", collection, { _id: objectId }, {$set: {carburants: data[0].carburants}})
             return NextResponse.json(
                 {
@@ -231,7 +248,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ collection: string; id: string, indexCarburant: number }> }
+  { params }: { params: Promise<{ collection: string; id: string; indexCarburant: string }> }
 ): Promise<NextResponse> {
   try {
     const { collection, id, indexCarburant } = await params
@@ -241,6 +258,14 @@ export async function DELETE(
           success: false,
           raison: 'Collection, ID, and indexCarburant are required'
         },
+        { status: HttpStatusCode.BAD_REQUEST }
+      )
+    }
+
+    const index = Number(indexCarburant)
+    if (Number.isNaN(index)) {
+      return NextResponse.json(
+        { success: false, raison: 'indexCarburant invalide' },
         { status: HttpStatusCode.BAD_REQUEST }
       )
     }
@@ -260,8 +285,8 @@ export async function DELETE(
       }
         // normalize data[0] access to avoid TS 'implicit any' on JSON type
         const doc: any = Array.isArray(data) ? data[0] : data
-        if (doc && doc.carburants && Array.isArray(doc.carburants) && doc.carburants.length > indexCarburant && indexCarburant >= 0) {
-          doc.carburants.splice(indexCarburant, 1)
+        if (doc && doc.carburants && Array.isArray(doc.carburants) && doc.carburants.length > index && index >= 0) {
+          doc.carburants.splice(index, 1)
           await mongo.updateOne("db_essence", collection, { _id: objectId }, {$set: {carburants: doc.carburants}})
             return NextResponse.json(
                 {

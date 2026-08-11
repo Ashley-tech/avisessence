@@ -3,10 +3,11 @@ import HttpStatusCode from '../../../lib/ts_HTTP/HttpStatusCode'
 import * as mongo from '../../../lib/ts_mongdb_client_connect/mongo_client_connect'
 import { MongoError, ObjectId } from 'mongodb'
 
-export async function GET(request: NextRequest, { params }: { params: { collection: string } }): Promise<NextResponse> {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ collection: string }> }): Promise<NextResponse> {
   const method = request.method
   const pathname = new URL(request.url).pathname
-  const collection = await params.collection || await pathname.split('/').filter(Boolean).pop() || ''
+  const { collection: collectionParam } = await params
+  const collection = collectionParam || pathname.split('/').filter(Boolean).pop() || ''
 
   if (!collection) {
     return NextResponse.json(
@@ -32,10 +33,11 @@ export async function GET(request: NextRequest, { params }: { params: { collecti
   )
 }
 
-export async function POST(request: NextRequest, { params }: { params: { collection: string } }): Promise<NextResponse> {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ collection: string }> }): Promise<NextResponse> {
   const method = request.method
   const pathname = new URL(request.url).pathname
-  const collection = pathname.split('/').filter(Boolean).pop() || ''
+  const { collection: collectionParam } = await params
+  const collection = collectionParam || pathname.split('/').filter(Boolean).pop() || ''
 
   if (!collection) {
     return NextResponse.json(
@@ -147,7 +149,19 @@ export async function POST(request: NextRequest, { params }: { params: { collect
   )
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { collection: string } }): Promise<NextResponse> {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ collection: string }> }): Promise<NextResponse> {
+  const method = await request.method
+  return NextResponse.json(
+    {
+      success: false,
+      raison: 'Method ' + method + ' not allowed'
+    },
+    {
+      status: HttpStatusCode.METHOD_NOT_ALLOWED
+    }
+  )
+}
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ collection: string }> }): Promise<NextResponse> {
   const method = await request.method
   return NextResponse.json(
     {
@@ -160,7 +174,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { collec
   )
 }
 
-export async function PUT(request: NextRequest): Promise<NextResponse> {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ collection: string }> }): Promise<NextResponse> {
   const method = await request.method
   return NextResponse.json(
     {
@@ -173,7 +187,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
   )
 }
 
-export async function DELETE(request: NextRequest): Promise<NextResponse> {
+export async function HEAD(request: NextRequest, { params }: { params: Promise<{ collection: string }> }): Promise<NextResponse> {
   const method = await request.method
   return NextResponse.json(
     {
@@ -186,20 +200,7 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
   )
 }
 
-export async function HEAD(request: NextRequest): Promise<NextResponse> {
-  const method = await request.method
-  return NextResponse.json(
-    {
-      success: false,
-      raison: 'Method ' + method + ' not allowed'
-    },
-    {
-      status: HttpStatusCode.METHOD_NOT_ALLOWED
-    }
-  )
-}
-
-export async function OPTIONS(request: NextRequest): Promise<NextResponse> {
+export async function OPTIONS(request: NextRequest, { params }: { params: Promise<{ collection: string }> }): Promise<NextResponse> {
   const method = await request.method
   return NextResponse.json(
     {

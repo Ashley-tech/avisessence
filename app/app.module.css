@@ -1,0 +1,258 @@
+.nav_links {
+	list-style: none;
+	display: flex;
+	width: 100%;
+	align-items: center;
+    justify-content: flex-end;
+	margin: 0;
+	padding: 0;
+}
+
+.nav_links li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+	padding: 0;
+	color: white;
+}
+
+.nav_links li.nav_right {
+	margin-left: auto;
+}
+
+.nav_links li:nth-child(1) {
+	padding: 0 20px 0 0;
+}
+
+.nav_links li a {
+	transition: all 0.3s ease 0s;
+}
+
+.header {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    padding: 0 20px;
+    background-color: #F59E0B;
+    top: 0;
+    left: 0;
+    right: 0;
+    position: fixed;
+    height: 80px;
+    color: #0F172A;
+}
+
+/*.header nav {
+	width: 100%;
+}*/
+
+.footer{
+    display: flex;
+    justify-content: right;
+    padding: 10px;
+    background-color: #F59E0B;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    position: fixed;
+    height: 50px;
+    color: #0F172A;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    overflow: auto;
+    padding: 24px;
+}
+
+.section{
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: calc(100vh - 130px);
+    padding-top: 88px;
+    padding-bottom: 64px;
+}
+
+.stationCard{
+    background-color: #FFFFFF;
+    color: #0F172A;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stationCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stationsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    max-width: 1000px;
+    margin-top: 40px;
+}
+
+.bigbutton {
+    background-color: #F59E0B;
+    color: #0F172A;
+    font-size: 36px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+
+    width: 100%;
+}
+
+.buttonTitle {
+    font-size: 36px;
+    font-weight: bold;
+}
+
+.smallbutton .buttonTitle {
+    font-size: 18px;
+}
+
+.buttonSubtitle {
+    font-size: 14px;
+    font-weight: normal;
+}
+
+.smallbutton {
+    background-color: #F59E0B;
+    color: #0F172A;
+    font-size: 17px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+
+    width: 100%;
+}
+
+.stationsContainer table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.stationsContainer th,
+.stationsContainer td {
+    padding: 12px 16px; /* plus de marge à gauche/droite */
+    text-align: left;
+}
+
+.addAvisContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    max-width: 600px;
+    margin-top: 40px;
+}
+
+.errorMessage {
+    color: red;
+    font-size: 14px;
+    margin-top: 8px;
+}
+
+.float_connection {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.65);
+    padding: 24px;
+}
+
+.float_modification_infos {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.65);
+    padding: 24px;
+}
+
+.float_connection_visible, .float_modification_infos_visible {
+    display: flex;
+}
+
+.popupBox {
+    width: min(400px, 100%);
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+    padding: 24px;
+    position: relative;
+    text-align: center;
+}
+
+.popupClose {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    border: none;
+    background: transparent;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.popupAction {
+    margin-top: 22px;
+    width: 100%;
+    padding: 14px 16px;
+    background: #F59E0B;
+    color: #0F172A;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.float_signup {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.65);
+    padding: 24px;
+}
+
+.float_signup_visible {
+    display: flex;
+}
+
+.input {
+    padding: 10px 12px;
+    border-radius: 8px;
+    background-color: #ffffff;
+    color: #0F172A;
+}
+

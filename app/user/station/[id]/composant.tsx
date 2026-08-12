@@ -7,6 +7,15 @@ import Cookie from "js-cookie";
 import { useState, useEffect } from "react";
 
 export default function Composant({station, users} : any) {
+  if (!station) {
+    return (
+      <div style={{ padding: 24 }}>
+        <h1>Station introuvable</h1>
+        <p>Impossible de charger les informations de la station.</p>
+      </div>
+    );
+  }
+
   const [showAddAvis, setShowAddAvis] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
   useEffect(() => {

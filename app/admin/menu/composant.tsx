@@ -22,6 +22,24 @@ export default function Composant({stations, users} : any) {
     const [showSuccess, setShowSuccess] = useState(false);
     const [showDebug, setShowDebug] = useState(false);
     const [debugStations, setDebugStations] = useState<any | null>(null);
+    const [localStations, setLocalStations] = useState<any[]>(stations ?? []);
+
+    useEffect(() => {
+      setLocalStations(stations ?? []);
+    }, [stations]);
+
+    async function refreshStations() {
+      try {
+        const res = await fetch('/api/stations');
+        const txt = await res.text();
+        let parsed: any = null;
+        try { parsed = txt ? JSON.parse(txt) : null } catch (e) { parsed = txt }
+        const newList = parsed?.data ?? parsed ?? [];
+        setLocalStations(Array.isArray(newList) ? newList : []);
+      } catch (e) {
+        console.error('refreshStations failed', e);
+      }
+    }
     const [userName, setUserName] = useState<string>("");
     useEffect(() => {
       const cookieUser = Cookie.get("user_name") || "";
@@ -31,9 +49,9 @@ export default function Composant({stations, users} : any) {
     const oldPassword = users[index]?.password || "";
 
     function openModifyCarburantPopup(stationIndex: number, carburantIndex: number) {
-        setSelectedStationIndex(stationIndex);
-        setSelectedCarburantIndex(carburantIndex);
-      const station = stations[stationIndex];
+      setSelectedStationIndex(stationIndex);
+      setSelectedCarburantIndex(carburantIndex);
+      const station = localStations[stationIndex];
       if (!station || !Array.isArray(station.carburants) || !station.carburants[carburantIndex]) {
         console.error('Carburant introuvable pour', stationIndex, carburantIndex, station);
         alert('Carburant introuvable. Vérifiez la console pour plus de détails.');
@@ -58,7 +76,7 @@ export default function Composant({stations, users} : any) {
             return;
         }
         try {
-            const response = await fetch(`/api/stations/${stations[stationIndex]._id}/${carburantIndex}`, {
+          const response = await fetch(`/api/stations/${localStations[stationIndex]._id}/${carburantIndex}`, {
               method: "PATCH",
               headers: {
                 "Content-Type": "application/json"
@@ -83,13 +101,13 @@ export default function Composant({stations, users} : any) {
     async function deleteCarburant(stationIndex: number, carburantIndex: number) {
         let data: any = { success: false, raison: 'Erreur lors de la suppression du carburant. Veuillez réessayer.' };
         try {
-            const response = await fetch(`/api/stations/${stations[stationIndex]._id}/${carburantIndex}`, {
+        const response = await fetch(`/api/stations/${localStations[stationIndex]._id}/${carburantIndex}`, {
                 method: 'DELETE',
             });
             const result = await response.json();
             data = result;
             if (data.success) {
-                location.reload();
+          await refreshStations();
             } else {
               alert(data.raison || 'Erreur lors de la suppression du carburant. Veuillez réessayer.');
             }
@@ -151,7 +169,7 @@ export default function Composant({stations, users} : any) {
         }
 
         if (data.success) {
-            window.location.reload();
+          await refreshStations();
         } else {
             document.getElementById("error-message")!.textContent = data.raison || 'Erreur lors de l\'ajout de la station. Veuillez réessayer.';
         }
@@ -160,13 +178,13 @@ export default function Composant({stations, users} : any) {
     async function deleteStation(indexStation: number) {
         let data: any = { success: false, raison: 'Erreur lors de la suppression de la station. Veuillez réessayer.' };
         try {
-          const response = await fetch(`/api/stations/${stations[indexStation]._id}`, {
+          const response = await fetch(`/api/stations/${localStations[indexStation]._id}`, {
             method: 'DELETE',
           });
           const result = await response.json();
           data = result;
           if (data.success) {
-            window.location.reload();
+            await refreshStations();
           } else {
             document.getElementById("error-message")!.textContent = data.raison || 'Erreur lors de la suppression de la station. Veuillez réessayer.';
           }
@@ -175,12 +193,12 @@ export default function Composant({stations, users} : any) {
         }
       }
       
-      function openNewCarburantPopup(stationIndex: number) {
+        function openNewCarburantPopup(stationIndex: number) {
         setSelectedStationIndex(stationIndex);
         (document.getElementById("nome") as HTMLInputElement).value = "";
         (document.getElementById("prix") as HTMLInputElement).value = "";
         document.getElementById("error-message-nc")!.textContent = "";
-        (document.getElementById("popup-title-new-carburant") as HTMLHeadingElement).textContent = `Ajouter un nouveau carburant pour la station "${stations[stationIndex].name}"`;
+        (document.getElementById("popup-title-new-carburant") as HTMLHeadingElement).textContent = `Ajouter un nouveau carburant pour la station "${localStations[stationIndex]?.name}"`;
         setShowNewCarburant(true);
       }
 
@@ -206,7 +224,7 @@ export default function Composant({stations, users} : any) {
             newPassword = oldPassword;
         }
 
-        const ind = users.findIndex((user: any) => user.login === loginInput.value && user.login !== userName);
+            const ind = users.findIndex((user: any) => user.login === loginInput.value && user.login !== userName);
         if (ind !== -1) {
           document.getElementById("error-message-infos")!.textContent = "Cet identifiant est déjà utilisé. Veuillez en choisir un autre.";
           return;
@@ -249,7 +267,7 @@ export default function Composant({stations, users} : any) {
             return;
         }
         try {
-            const response = await fetch(`/api/stations/${stations[indexStation]._id}`, {
+            const response = await fetch(`/api/stations/${localStations[indexStation]._id}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -261,7 +279,7 @@ export default function Composant({stations, users} : any) {
             });
             const data = await response.json();
             if (data.success) {
-              location.reload();
+              await refreshStations();
             } else {
               document.getElementById("error-message-nc")!.textContent = data.raison || "Erreur lors de l'ajout du carburant. Veuillez réessayer.";
             }
@@ -287,7 +305,7 @@ export default function Composant({stations, users} : any) {
         let data: any = { success: false, raison: 'Erreur lors de la mise à jour de la station. Veuillez réessayer.' };
 
         try {
-            const response = await fetch(`/api/stations/${stations[selectedStationIndex]._id}`, {
+            const response = await fetch(`/api/stations/${localStations[selectedStationIndex]._id}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json'
@@ -315,7 +333,7 @@ export default function Composant({stations, users} : any) {
         }
 
         if (data.success) {
-            window.location.reload();
+          await refreshStations();
         } else {
             document.getElementById("error-message")!.textContent = data.raison || 'Erreur lors de la mise à jour de la station. Veuillez réessayer.';
         }
@@ -384,7 +402,7 @@ export default function Composant({stations, users} : any) {
                         </tr>
                     </thead>
                     <tbody>
-                        {stations.map((station: any) => {
+                        {localStations.map((station: any) => {
                             const carburants = Array.isArray(station?.carburants) ? station.carburants : [];
                             console.debug('Rendering station', station?._id, 'carburants:', carburants);
                             return (
@@ -400,7 +418,7 @@ export default function Composant({stations, users} : any) {
                                         <span key={index}>
                                           {c?.name ?? '—'} {c?.price === 0 ? "en RUPTURE" : `à ${c?.price}€/litre`}
                                           <button className={styles.smallbutton} onClick={() => {
-                                            const idx = stations.findIndex((s: any) => s._id === station._id);
+                                            const idx = localStations.findIndex((s: any) => s._id === station._id);
                                             setSelectedStationIndex(idx);
                                             setSelectedCarburantIndex(index);
                                             openModifyCarburantPopup(idx, index);
@@ -413,13 +431,13 @@ export default function Composant({stations, users} : any) {
                                       )}
                                     </td>
                                     <td>
-                                        <button className={styles.smallbutton} onClick={() => openModifyStationPopup(stations.findIndex((s: any) => s._id === station._id))}>
+                                        <button className={styles.smallbutton} onClick={() => openModifyStationPopup(localStations.findIndex((s: any) => s._id === station._id))}>
                                             Modifier
                                         </button><br />
-                                        <button className={styles.smallbutton} onClick={() => openNewCarburantPopup(stations.findIndex((s: any) => s._id === station._id))}>
+                                        <button className={styles.smallbutton} onClick={() => openNewCarburantPopup(localStations.findIndex((s: any) => s._id === station._id))}>
                                             Nouveau carburant
                                         </button><br />
-                                        <button className={styles.smallbutton} onClick={() => openConfirmDeleteStationPopup(stations.findIndex((s: any) => s._id === station._id))}>
+                                        <button className={styles.smallbutton} onClick={() => openConfirmDeleteStationPopup(localStations.findIndex((s: any) => s._id === station._id))}>
                                             Supprimer
                                         </button>
                                     </td>

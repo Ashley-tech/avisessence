@@ -22,11 +22,13 @@ export default function Composant({stations, users} : any) {
     const [showSuccess, setShowSuccess] = useState(false);
     const [showDebug, setShowDebug] = useState(false);
     const [debugStations, setDebugStations] = useState<any | null>(null);
-    const [localStations, setLocalStations] = useState<any[]>(stations ?? []);
+
+    const initialStations = Array.isArray(stations) ? stations : stations?.data ?? [];
+    const [localStations, setLocalStations] = useState<any[]>(initialStations);
 
     useEffect(() => {
-      setLocalStations(stations ?? []);
-      refreshStations()
+      setLocalStations(initialStations);
+      refreshStations();
     }, [stations]);
 
     async function refreshStations() {
@@ -69,7 +71,7 @@ export default function Composant({stations, users} : any) {
       (document.getElementById("nomeu") as HTMLInputElement).value = station.carburants[carburantIndex].name;
       setPrix(station.carburants[carburantIndex].price.toString());
         document.getElementById("error-message-uc")!.textContent = "";
-        (document.getElementById("popup-title-modify-carburant") as HTMLHeadingElement).textContent = `Modifier le carburant "${stations[stationIndex].carburants[carburantIndex].name}" pour la station "${stations[stationIndex].name}"`;
+        (document.getElementById("popup-title-modify-carburant") as HTMLHeadingElement).textContent = `Modifier le carburant "${station.carburants[carburantIndex].name}" pour la station "${station.name}"`;
         setShowModifyCarburant(true);
     }
 
@@ -363,7 +365,7 @@ export default function Composant({stations, users} : any) {
     function openConfirmDeleteStationPopup(stationIndex: number) {
         setSelectedStationIndex(stationIndex);
         setShowConfirmDeleteStation(true);
-        (document.getElementById("delete-station-title") as HTMLHeadingElement).textContent = `Êtes-vous sûr de vouloir supprimer la station "${stations[stationIndex].name}" ?`;
+        (document.getElementById("delete-station-title") as HTMLHeadingElement).textContent = `Êtes-vous sûr de vouloir supprimer la station "${localStations[stationIndex]?.name}" ?`;
     }
 
     function openModifyAdminInfosPopup() {
@@ -377,15 +379,16 @@ export default function Composant({stations, users} : any) {
 
     function openModifyStationPopup(stationIndex: number) {
         setSelectedStationIndex(stationIndex);
-        (document.getElementById("nomm") as HTMLInputElement).value = stations[stationIndex].name;
-        (document.getElementById("marquem") as HTMLInputElement).value = stations[stationIndex].mark;
-        (document.getElementById("adressem") as HTMLInputElement).value = stations[stationIndex].localisation.adress;
-        (document.getElementById("code-postalm") as HTMLInputElement).value = stations[stationIndex].localisation.postalCode;
-        (document.getElementById("villem") as HTMLInputElement).value = stations[stationIndex].localisation.city;
-        (document.getElementById("departementm") as HTMLInputElement).value = stations[stationIndex].localisation.department;
-        (document.getElementById("regionm") as HTMLInputElement).value = stations[stationIndex].localisation.region;
+        const station = localStations[stationIndex];
+        (document.getElementById("nomm") as HTMLInputElement).value = station?.name ?? "";
+        (document.getElementById("marquem") as HTMLInputElement).value = station?.mark ?? "";
+        (document.getElementById("adressem") as HTMLInputElement).value = station?.localisation?.adress ?? "";
+        (document.getElementById("code-postalm") as HTMLInputElement).value = station?.localisation?.postalCode ?? "";
+        (document.getElementById("villem") as HTMLInputElement).value = station?.localisation?.city ?? "";
+        (document.getElementById("departementm") as HTMLInputElement).value = station?.localisation?.department ?? "";
+        (document.getElementById("regionm") as HTMLInputElement).value = station?.localisation?.region ?? "";
         document.getElementById("error-message-2")!.textContent = "";
-        (document.getElementById("popup-title-update") as HTMLHeadingElement).textContent = `Modifier les informations de la station "${stations[stationIndex].name}"`;
+        (document.getElementById("popup-title-update") as HTMLHeadingElement).textContent = `Modifier les informations de la station "${station?.name ?? ''}"`;
       setShowModifyStation(true)
     }
 

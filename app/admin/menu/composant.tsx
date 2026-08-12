@@ -26,6 +26,7 @@ export default function Composant({stations, users} : any) {
 
     useEffect(() => {
       setLocalStations(stations ?? []);
+      refreshStations()
     }, [stations]);
 
     async function refreshStations() {

@@ -113,31 +113,33 @@ export default function Composant({stations, users} : any) {
         let data: any = { success: false, raison: 'Erreur lors de l\'ajout de la station. Veuillez réessayer.' };
 
         try {
-            const response = await fetch('/api/stations', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    name: nomInput.value,
-                    mark: marqueInput.value,
-                    adress: adresseInput.value,
-                    postalCode: codePostalInput.value,
-                    city: villeInput.value,
-                    department: departementInput.value,
-                    region: regionInput.value
-                })
-            });
+          const response = await fetch('/api/stations', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              name: nomInput.value,
+              mark: marqueInput.value,
+              adress: adresseInput.value,
+              postalCode: codePostalInput.value,
+              city: villeInput.value,
+              department: departementInput.value,
+              region: regionInput.value
+            })
+          });
 
-            const responseText = await response.text();
-            if (responseText) {
-                data = JSON.parse(responseText);
-            } else {
-                data = { success: false, raison: 'Le serveur n\'a renvoyé aucune réponse.' };
-            }
+          const responseText = await response.text();
+          console.log('addStation response status:', response.status, 'body:', responseText);
+          try {
+            data = responseText ? JSON.parse(responseText) : { success: false, raison: `Serveur répondu avec statut ${response.status} mais corps vide` };
+          } catch (err) {
+            console.error('JSON parse error for addStation response:', err);
+            data = { success: false, raison: `Réponse invalide du serveur (status ${response.status})` };
+          }
         } catch (error) {
-            console.error('Erreur lors de l\'ajout de la station:', error);
-            data = { success: false, raison: 'Le serveur a renvoyé une réponse invalide.' };
+          console.error('Erreur lors de l\'ajout de la station:', error);
+          data = { success: false, raison: 'Erreur réseau ou impossibilité de joindre l\'API. Voir console pour détails.' };
         }
 
         if (data.success) {

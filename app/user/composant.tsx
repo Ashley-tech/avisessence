@@ -21,7 +21,13 @@ export default function Composant({stations, users} : any) {
     setUserName(Cookie.get("user_name") ?? null);
   }, []);
 
-  const index = userName ? users.findIndex((user: any) => user.login === userName) : -1;
+  useEffect(() => {
+    console.log("users (prod):", users);
+    console.log("userName (cookie):", Cookie.get("user_name"));
+  }, [users]);
+
+  const index = userName ? users.findIndex((u: any) => u.login === userName) : -1;
+  const currentUser = index >= 0 ? users[index] : null;
 
   function allStations() {
     let s = [];
@@ -163,7 +169,7 @@ export default function Composant({stations, users} : any) {
         return;
       }
       const indexEmail = users.findIndex((user: any) => user.mail === email && user.type === "Local");
-      if (indexEmail !== -1 && users[indexEmail].mail != users[index]?.mail) {
+      if (indexEmail !== -1 && users[indexEmail].mail != currentUser.mail) {
         (document.getElementById("error-message-signup-user") as HTMLParagraphElement).textContent = "Cette adresse e-mail est déjà utilisée.";
         return;
       }
@@ -382,7 +388,7 @@ export default function Composant({stations, users} : any) {
     const email_modif = (document.getElementById("email_modif") as HTMLInputElement).value;
     const mdpi_modif = (document.getElementById("mdpi_modif") as HTMLInputElement).value;
     const mdpir_modif = (document.getElementById("mdpir_modif") as HTMLInputElement).value;
-    const oldPwd = users[index]?.password;
+    const oldPwd = currentUser.password;
     if (iden_modif === "" || email_modif === "") {
       (document.getElementById("message-error-modification-infos") as HTMLParagraphElement).textContent = "L'identifiant et l'adresse e-mail sont obligatoires.";
       (document.getElementById("message-error-modification-infos") as HTMLParagraphElement).style.color = "rgb(255, 0, 0)";
@@ -412,7 +418,7 @@ export default function Composant({stations, users} : any) {
       (document.getElementById("message-error-modification-infos") as HTMLParagraphElement).style.color = "rgb(255, 0, 0)";
       return;
     }
-    const response = await fetch(`/api/users/${users[index]?._id}`, {
+    const response = await fetch(`/api/users/${currentUser._id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json"
@@ -466,15 +472,15 @@ export default function Composant({stations, users} : any) {
             <>
               <h3>Vos informations</h3>
               <p>Vous êtes connecté en tant que : <strong id="userLi">{userName}</strong></p>
-              <p>Votre adresse e-mail est : <strong id='emailLi'>{users[index]?.mail}</strong></p>
-              <p>Votre mot de passe contient <strong id="password-length">{users[index]?.password.length}</strong> caractère(s)</p>
+              <p>Votre adresse e-mail est : <strong id='emailLi'>{currentUser.mail}</strong></p>
+              <p>Votre mot de passe contient <strong id="password-length">{currentUser.password.length}</strong> caractère(s)</p>
               <button className={styles.popupAction} onClick={() => {
                 setShowConnection(false);
                 setShowModificationInfos(true);
                 (document.getElementById("mdpi_modif") as HTMLInputElement).value = "";
                 (document.getElementById("mdpir_modif") as HTMLInputElement).value = "";
-                (document.getElementById("iden_modif") as HTMLInputElement).value = users[index]?.login;
-                (document.getElementById("email_modif") as HTMLInputElement).value = users[index]?.mail;
+                (document.getElementById("iden_modif") as HTMLInputElement).value = currentUser.login;
+                (document.getElementById("email_modif") as HTMLInputElement).value = currentUser.mail;
               }}>
                 Modifier vos informations
               </button>
@@ -535,8 +541,8 @@ export default function Composant({stations, users} : any) {
 
   function connectedBool() {
     if (userName) {
-      let index = users.findIndex((user: any) => user.login === userName);
-      return users[index]?.login ?? "Se connecter";
+      //let index = users.findIndex((user: any) => user.login === userName);
+      return currentUser.login ?? "Se connecter";
     }
     return "Se connecter";
   }
@@ -554,7 +560,7 @@ export default function Composant({stations, users} : any) {
     let data: any = { success: false, raison: 'Erreur lors de la suppression de votre compte. Veuillez réessayer.' };
     const index = users.findIndex((obj : any) => obj.login === userName && obj.type === "Local")
     try {
-      const response = await fetch(`/api/users/${users[index]._id}`, {
+      const response = await fetch(`/api/users/${currentUser._id}`, {
         method: 'DELETE',
       });
       const result = await response.json();

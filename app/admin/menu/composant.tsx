@@ -31,8 +31,14 @@ export default function Composant({stations, users} : any) {
     function openModifyCarburantPopup(stationIndex: number, carburantIndex: number) {
         setSelectedStationIndex(stationIndex);
         setSelectedCarburantIndex(carburantIndex);
-        (document.getElementById("nomeu") as HTMLInputElement).value = stations[stationIndex].carburants[carburantIndex].name;
-        setPrix(stations[stationIndex].carburants[carburantIndex].price.toString());
+      const station = stations[stationIndex];
+      if (!station || !Array.isArray(station.carburants) || !station.carburants[carburantIndex]) {
+        console.error('Carburant introuvable pour', stationIndex, carburantIndex, station);
+        alert('Carburant introuvable. Vérifiez la console pour plus de détails.');
+        return;
+      }
+      (document.getElementById("nomeu") as HTMLInputElement).value = station.carburants[carburantIndex].name;
+      setPrix(station.carburants[carburantIndex].price.toString());
         document.getElementById("error-message-uc")!.textContent = "";
         (document.getElementById("popup-title-modify-carburant") as HTMLHeadingElement).textContent = `Modifier le carburant "${stations[stationIndex].carburants[carburantIndex].name}" pour la station "${stations[stationIndex].name}"`;
         setShowModifyCarburant(true);
@@ -382,7 +388,10 @@ export default function Composant({stations, users} : any) {
                                 <td>{station.mark}</td>
                                 <td>{station.localisation.adress}, {station.localisation.postalCode}, {station.localisation.city} ({station.localisation.department}, {station.localisation.region})</td>
                                 <td>
-                                  {station.carburants.map((c: any, index: number) => (
+                                  {(station.carburants ?? []).length === 0 ? (
+                                    <span>Aucun carburant</span>
+                                  ) : (
+                                    (station.carburants ?? []).map((c: any, index: number) => (
                                     <span key={index}>
                                       {c.name} {c.price === 0 ? "en RUPTURE" : `à ${c.price}€/litre`}
                                       <button className={styles.smallbutton} onClick={() => {
@@ -392,9 +401,10 @@ export default function Composant({stations, users} : any) {
                                       }}>
                                         Modifier
                                       </button>
-                                      {index < station.carburants.length - 1 ? " - " : ""}
+                                      {index < (station.carburants ?? []).length - 1 ? " - " : ""}
                                     </span>
-                                  ))}
+                                    ))
+                                  )}
                                 </td>
                                 <td>
                                     <button className={styles.smallbutton} onClick={() => openModifyStationPopup(stations.findIndex((s: any) => s._id === station._id))}>

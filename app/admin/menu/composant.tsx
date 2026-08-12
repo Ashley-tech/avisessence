@@ -29,6 +29,14 @@ export default function Composant({stations, users} : any) {
     }, [stations]);
 
     async function refreshStations() {
+      setShowNewStation(false)
+      setShowNewCarburant(false)
+      setShowConfirmDeleteCarburant(false)
+      setShowConfirmDeleteStation(false)
+      setShowModifyCarburant(false)
+      setShowModifyStation(false)
+      setShowModifyAdminInfos(false)
+      
       try {
         const res = await fetch('/api/stations');
         const txt = await res.text();

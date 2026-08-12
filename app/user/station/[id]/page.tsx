@@ -8,7 +8,7 @@ export default async function Page({
   params: { id: string }
 }) {
 
-  const { id } = params;
+  const { id } = await params;
 
   const stationQuery = ObjectId.isValid(id)
     ? { _id: new ObjectId(id) }

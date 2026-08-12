@@ -20,6 +20,8 @@ export default function Composant({stations, users} : any) {
     const [prix, setPrix] = useState<string>("0");
     const [showInfos, setShowInfos] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [showDebug, setShowDebug] = useState(false);
+    const [debugStations, setDebugStations] = useState<any | null>(null);
     const [userName, setUserName] = useState<string>("");
     useEffect(() => {
       const cookieUser = Cookie.get("user_name") || "";
@@ -382,45 +384,67 @@ export default function Composant({stations, users} : any) {
                         </tr>
                     </thead>
                     <tbody>
-                        {stations.map((station: any) => (
-                            <tr key={station._id} className="border-y border-gray-600">
-                                <td>{station.name}</td>
-                                <td>{station.mark}</td>
-                                <td>{station.localisation.adress}, {station.localisation.postalCode}, {station.localisation.city} ({station.localisation.department}, {station.localisation.region})</td>
-                                <td>
-                                  {(station.carburants ?? []).length === 0 ? (
-                                    <span>Aucun carburant</span>
-                                  ) : (
-                                    (station.carburants ?? []).map((c: any, index: number) => (
-                                    <span key={index}>
-                                      {c.name} {c.price === 0 ? "en RUPTURE" : `à ${c.price}€/litre`}
-                                      <button className={styles.smallbutton} onClick={() => {
-                                        setSelectedStationIndex(stations.findIndex((s: any) => s._id === station._id));
-                                        setSelectedCarburantIndex(index);
-                                        openModifyCarburantPopup(stations.findIndex((s: any) => s._id === station._id), index);
-                                      }}>
-                                        Modifier
-                                      </button>
-                                      {index < (station.carburants ?? []).length - 1 ? " - " : ""}
-                                    </span>
-                                    ))
-                                  )}
-                                </td>
-                                <td>
-                                    <button className={styles.smallbutton} onClick={() => openModifyStationPopup(stations.findIndex((s: any) => s._id === station._id))}>
-                                        Modifier
-                                    </button><br />
-                                    <button className={styles.smallbutton} onClick={() => openNewCarburantPopup(stations.findIndex((s: any) => s._id === station._id))}>
-                                        Nouveau carburant
-                                    </button><br />
-                                    <button className={styles.smallbutton} onClick={() => openConfirmDeleteStationPopup(stations.findIndex((s: any) => s._id === station._id))}>
-                                        Supprimer
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
+                        {stations.map((station: any) => {
+                            const carburants = Array.isArray(station?.carburants) ? station.carburants : [];
+                            console.debug('Rendering station', station?._id, 'carburants:', carburants);
+                            return (
+                                <tr key={station._id ?? Math.random()} className="border-y border-gray-600">
+                                    <td>{station?.name ?? '—'}</td>
+                                    <td>{station?.mark ?? '—'}</td>
+                                    <td>{station?.localisation?.adress ?? ''}{station?.localisation ? `, ${station.localisation.postalCode}, ${station.localisation.city} (${station.localisation.department}, ${station.localisation.region})` : ''}</td>
+                                    <td>
+                                      {carburants.length === 0 ? (
+                                        <span>Aucun carburant</span>
+                                      ) : (
+                                        carburants.map((c: any, index: number) => (
+                                        <span key={index}>
+                                          {c?.name ?? '—'} {c?.price === 0 ? "en RUPTURE" : `à ${c?.price}€/litre`}
+                                          <button className={styles.smallbutton} onClick={() => {
+                                            const idx = stations.findIndex((s: any) => s._id === station._id);
+                                            setSelectedStationIndex(idx);
+                                            setSelectedCarburantIndex(index);
+                                            openModifyCarburantPopup(idx, index);
+                                          }}>
+                                            Modifier
+                                          </button>
+                                          {index < carburants.length - 1 ? " - " : ""}
+                                        </span>
+                                        ))
+                                      )}
+                                    </td>
+                                    <td>
+                                        <button className={styles.smallbutton} onClick={() => openModifyStationPopup(stations.findIndex((s: any) => s._id === station._id))}>
+                                            Modifier
+                                        </button><br />
+                                        <button className={styles.smallbutton} onClick={() => openNewCarburantPopup(stations.findIndex((s: any) => s._id === station._id))}>
+                                            Nouveau carburant
+                                        </button><br />
+                                        <button className={styles.smallbutton} onClick={() => openConfirmDeleteStationPopup(stations.findIndex((s: any) => s._id === station._id))}>
+                                            Supprimer
+                                        </button>
+                                    </td>
+                                </tr>
+                            )
+                        })}
                     </tbody>
                 </table>
+            </div>
+            <div style={{marginTop: 12}}>
+              <button className={styles.smallbutton} onClick={async () => {
+                setShowDebug((s) => !s);
+                try {
+                  const res = await fetch('/api/stations');
+                  const txt = await res.text();
+                  let parsed = null;
+                  try { parsed = txt ? JSON.parse(txt) : null } catch(e) { parsed = txt }
+                  setDebugStations(parsed);
+                  console.log('debug /api/stations', res.status, parsed);
+                } catch (e) {
+                  console.error('Debug fetch /api/stations failed', e);
+                  setDebugStations({ error: 'Fetch failed', details: String(e) });
+                }
+              }}>{showDebug ? 'Cacher debug' : 'Afficher debug /api/stations'}</button>
+              {showDebug && <pre style={{maxHeight: 300, overflow: 'auto', background: '#111', color: '#dcdcdc', padding: 8}}>{JSON.stringify(debugStations, null, 2)}</pre>}
             </div>
             <button className={styles.bigbutton} id="nouvelle-station-button" onClick={openNewStationPopup}>
               <span className={styles.buttonTitle}>Nouvelle station</span>

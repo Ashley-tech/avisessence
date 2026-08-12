@@ -10,7 +10,8 @@ export default async function Page({
   }) {
 
     async function getDatas(collection: string){
-        let d= await mongo.find("db_essence",collection,{});
+      const response = await fetch("/api/"+collection)
+        let d= await response.json()
         return d
     }
 

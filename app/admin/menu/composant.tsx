@@ -762,6 +762,15 @@ export default function Composant({stations, users} : any) {
         </div>
         <div className={styles.footer}>
             <p>© 2026 AvisEssence. Tous droits réservés.</p>
+            <div className={styles.links}>
+              <a
+                  href="https://github.com/Ashley-tech/avisessence"
+                  target="_blank"
+                  rel="noopener noreferrer"
+              >
+                  GitHub
+              </a>
+            </div>
         </div>
     </div>);
 }

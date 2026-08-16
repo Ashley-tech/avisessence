@@ -59,6 +59,21 @@
     color: #0F172A;
 }
 
+.links {
+    display: flex;
+    gap: 20px;
+}
+
+.links a {
+    color: #0F172A;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.links a:hover {
+    text-decoration: underline;
+}
+
 .content {
     display: flex;
     flex-direction: column;

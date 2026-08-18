@@ -189,6 +189,14 @@ export default function Composant({station, users} : any) {
               >
                   GitHub
               </a>
+               -
+               <a
+                  href="https://www.youtube.com/watch?v=qMahujlZvRM"
+                  target="_blank"
+                  rel="noopener noreferrer"
+              >
+                  Vidéo de présentation sur YouTube
+              </a>
             </div>
         </div>
     </div>)
